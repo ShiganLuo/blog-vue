@@ -7,18 +7,18 @@ import { defineFakeRoute } from "vite-plugin-fake-server/client";
  * common：普通角色
  */
 const permissionRouter = {
-  path: "/permission",
+  path: "/user",
   meta: {
-    title: "权限管理",
-    icon: "ep:lollipop",
+    title: "用户管理",
+    icon: "ep:user",
     rank: 10
   },
   children: [
     {
-      path: "/permission/page/index",
+      path: "/user/index",
       name: "PermissionPage",
       meta: {
-        title: "页面权限",
+        title: "用户列表",
         roles: ["admin", "common"]
       }
     },
