@@ -1,170 +1,318 @@
-<template>
-  <PureTable
-    :data="filteredArticles"
-    :pagination="pagination"
-    :loading="loading"
-    @update:pagination="handlePagination"
-  >
-    <!-- 搜索栏 -->
-    <template #header>
-      <el-input
-        v-model="searchKeyword"
-        placeholder="搜索文章"
-        class="!w-64"
-        clearable
-      />
-      <el-button type="primary" @click="handleCreate">
-        <template #icon>
-          <Icon icon="ep:add" />
-          <!-- 使用 Element Plus 图标 -->
-        </template>
-        新增文章
-      </el-button>
-    </template>
+<script lang="ts" setup name="AddEditArticle">
+import { MdEditor } from "md-editor-v3";
+import "md-editor-v3/lib/style.css";
+import DocumentChecked from "@iconify-icons/ep/document-checked";
+import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import Upload from "@/components/Upload/upload.vue";
 
-    <!-- 表格 -->
-    <el-table-column prop="title" label="标题" min-width="200" />
-    <el-table-column prop="category" label="分类" width="120">
-      <template #default="{ row }">
-        <el-tag :type="getCategoryColor(row.category)">
-          {{ categories.find(c => c.value === row.category)?.label }}
-        </el-tag>
-      </template>
-    </el-table-column>
-    <el-table-column prop="status" label="状态" width="100">
-      <template #default="{ row }">
-        <el-tag :type="row.status ? 'success' : 'warning'">
-          {{ row.status ? "已发布" : "草稿" }}
-        </el-tag>
-      </template>
-    </el-table-column>
-    <el-table-column prop="createTime" label="发布时间" width="180" />
-    <el-table-column label="操作" width="180" fixed="right">
-      <template #default="{ row }">
-        <el-button link type="primary" @click="handleEdit(row)">
-          <IconifyIcon icon="carbon:edit" class="mr-1" />
-          编辑
-        </el-button>
-        <el-popconfirm title="确认删除？" @confirm="handleDelete(row.id)">
-          <template #reference>
-            <el-button link type="danger">
-              <IconifyIcon icon="carbon:delete" class="mr-1" />
-              删除
-            </el-button>
-          </template>
-        </el-popconfirm>
-      </template>
-    </el-table-column>
-
-    <!-- 编辑弹窗 -->
-    <ArticleEditor
-      v-model="dialogVisible"
-      :data="currentArticle"
-      :mode="isEdit ? 'edit' : 'create'"
-      @submit="handleSubmit"
-    />
-  </PureTable>
-</template>
-
-<script lang="ts" setup>
-import { ref, reactive, computed } from "vue";
-import { ElMessage } from "element-plus";
-import { PureTable } from "@pureadmin/table";
-import { Icon } from "@iconify/vue";
-import ArticleEditor from "./components/ArticleEditor.vue";
-import type { Article, Category } from "./types";
-
-// 配置项
-const categories: Category[] = [
-  { label: "技术", value: "tech", color: "blue" },
-  { label: "生活", value: "life", color: "green" },
-  { label: "其他", value: "other", color: "purple" }
-];
-const handlePagination = (newPagination: { page: number; size: number }) => {
-  pagination.page = newPagination.page;
-  pagination.size = newPagination.size;
-  // Here you would typically fetch data based on the new pagination
-  // For now, we're just updating the pagination state
-};
-
-// 响应式状态
-const searchKeyword = ref("");
-const loading = ref(false);
-const dialogVisible = ref(false);
-const isEdit = ref(false);
-const currentArticle = ref<Partial<Article>>({});
-
-const pagination = reactive({
-  page: 1,
-  size: 10,
-  total: 0
-});
-
-// 模拟数据
-const articles = ref<Article[]>([]);
-
-// 计算属性
-const filteredArticles = computed(() => {
-  return articles.value.filter(
-    article =>
-      article.title.includes(searchKeyword.value) ||
-      article.content.includes(searchKeyword.value)
-  );
-});
-
-// 方法
-const getCategoryColor = (
-  category: string
-): "success" | "warning" | "info" | "primary" | "danger" => {
-  const categoryObj = categories.find(c => c.value === category);
-  switch (categoryObj?.color) {
-    case "blue":
-      return "primary";
-    case "green":
-      return "success";
-    case "purple":
-      return "info";
-    default:
-      return "info";
-  }
-};
-
-const handleCreate = () => {
-  currentArticle.value = {
-    title: "",
-    content: "",
-    category: "tech",
-    status: 0,
-    tags: [],
-    cover: ""
-  };
-  isEdit.value = false;
-  dialogVisible.value = true;
-};
-
-const handleEdit = (row: Article) => {
-  currentArticle.value = { ...row };
-  isEdit.value = true;
-  dialogVisible.value = true;
-};
-
-const handleDelete = async (id: number) => {
-  articles.value = articles.value.filter(item => item.id !== id);
-  ElMessage.success("删除成功");
-};
-
-const handleSubmit = (formData: Article) => {
-  if (isEdit.value) {
-    const index = articles.value.findIndex(item => item.id === formData.id);
-    if (index > -1) articles.value.splice(index, 1, formData);
-  } else {
-    articles.value.push({
-      ...formData,
-      id: Date.now(),
-      createTime: new Date().toISOString()
-    });
-  }
-  dialogVisible.value = false;
-  ElMessage.success("操作成功");
-};
+import { useArticle } from "./index";
+const {
+  coverUrl,
+  articleForm,
+  dialogVisible,
+  tagOptionList,
+  articleFormRef,
+  articleFormRules,
+  categoryOptionList,
+  coverPreviewVisible,
+  dialogArticleFormRef,
+  dialogArticleFormRules,
+  closeDialog,
+  publish,
+  submitForm,
+  uploadImage,
+  articleTitleVAlidate
+} = useArticle();
 </script>
+
+<template>
+  <el-card shadow="never" class="card">
+    <template #header>
+      <div class="card-header">{{ articleForm.id ? "编辑" : "新增" }}文章</div>
+    </template>
+    <el-form
+      ref="articleFormRef"
+      :inline="true"
+      :model="articleForm"
+      :rules="articleFormRules"
+      class="bg-bg_color w-[99/100] h-[100%]"
+      label-width="120"
+    >
+      <el-form-item
+        style="width: 65%"
+        label-width="80"
+        label="文章标题"
+        prop="article_title"
+      >
+        <el-input
+          v-model="articleForm.article_title"
+          placeholder="请输入文章标题"
+          clearable
+          maxlength="55"
+          @change="articleTitleVAlidate"
+        />
+      </el-form-item>
+      <el-form-item style="width: 25%">
+        <div class="publish-btn">
+          <el-button
+            type="danger"
+            size="small"
+            :icon="useRenderIcon(DocumentChecked)"
+            @click="publish(articleFormRef)"
+            >{{ articleForm.id ? "修改文章" : "发布文章" }}</el-button
+          >
+        </div>
+      </el-form-item>
+      <el-form-item style="width: 100%; height: auto" prop="article_content">
+        <MdEditor
+          v-model="articleForm.article_content"
+          @onUploadImg="uploadImage"
+        />
+      </el-form-item>
+    </el-form>
+    <el-dialog
+      v-model="dialogVisible"
+      title="发布文章"
+      :width="800"
+      draggable
+      :fullscreen="true"
+      :before-close="closeDialog"
+    >
+      <el-form
+        ref="dialogArticleFormRef"
+        :inline="true"
+        :model="articleForm"
+        :rules="dialogArticleFormRules"
+        class="bg-bg_color w-[99/100]"
+        label-width="120"
+      >
+        <el-form-item
+          class="form-item100"
+          label="文章标题"
+          prop="article_title"
+        >
+          {{ articleForm.article_title }}
+        </el-form-item>
+        <el-form-item
+          class="form-item100"
+          label="文章描述"
+          prop="article_description"
+        >
+          <el-input
+            v-model="articleForm.article_description"
+            placeholder="说点儿什么，太抽象了可不好"
+            style="width: 70%"
+            clearable
+            type="textarea"
+            maxlength="150"
+            resize="none"
+            :autosize="{ minRows: 2, maxRows: 3 }"
+            show-word-limit
+          />
+        </el-form-item>
+        <el-form-item label="文章分类" prop="category_id">
+          <el-select
+            v-model="articleForm.category_id"
+            :style="{ width: '380px' }"
+            placeholder="请选择分类"
+            filterable
+            clearable
+            allow-create
+          >
+            <el-option
+              v-for="item in categoryOptionList"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="文章标签" prop="tagIdList">
+          <el-select
+            v-model="articleForm.tagIdList"
+            :style="{ width: '380px' }"
+            placeholder="请选择标签"
+            multiple
+            filterable
+            clearable
+            allow-create
+            :multiple-limit="3"
+          >
+            <el-option
+              v-for="item in tagOptionList"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item
+          class="form-item100 article-cover"
+          label="文章缩略图"
+          prop="coverList"
+        >
+          <Upload
+            v-model:file-list="articleForm.coverList"
+            :width="260"
+            :height="150"
+            :limit="1"
+          />
+        </el-form-item>
+        <el-form-item class="form-item100" label="置顶">
+          <el-switch
+            v-model="articleForm.is_top"
+            size="small"
+            active-text="是"
+            inactive-text="否"
+            :active-value="1"
+            :inactive-value="2"
+          />
+        </el-form-item>
+        <el-form-item
+          v-if="articleForm.is_top == 1"
+          class="form-item100"
+          label="排序"
+          prop="order"
+        >
+          <el-input-number
+            v-model="articleForm.order"
+            placeholder="请输入排序"
+            style="width: 20%"
+            :min="1"
+            :max="9999"
+            :precision="0"
+            :controls="false"
+          />
+        </el-form-item>
+        <el-form-item class="form-item100" label="状态">
+          <el-radio-group v-model="articleForm.status">
+            <el-radio :label="1">公开</el-radio>
+            <el-radio :label="2">私密</el-radio>
+            <el-radio :label="3">草稿箱</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item class="form-item100" label="文章类型">
+          <el-radio-group v-model="articleForm.type">
+            <el-radio :label="1">原创</el-radio>
+            <el-radio :label="2">转载</el-radio>
+            <el-radio :label="3">翻译</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item
+          v-if="[2, 3].includes(Number(articleForm.type))"
+          class="form-item100"
+          label="原文链接"
+          prop="origin_url"
+        >
+          <el-input
+            v-model="articleForm.origin_url"
+            placeholder="请输入原文链接"
+            style="width: 80%"
+            clearable
+            type="textarea"
+            maxlength="225"
+            resize="none"
+            :autosize="{ minRows: 2, maxRows: 4 }"
+            show-word-limit
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button size="small" @click="closeDialog()">取消</el-button>
+        <el-button
+          size="small"
+          type="danger"
+          plain
+          @click="submitForm(dialogArticleFormRef, 1)"
+        >
+          保存草稿
+        </el-button>
+        <el-button
+          size="small"
+          type="danger"
+          @click="submitForm(dialogArticleFormRef, 2)"
+        >
+          {{ articleForm.id ? "修改文章" : "发布文章" }}
+        </el-button>
+      </template>
+    </el-dialog>
+    <el-dialog v-model="coverPreviewVisible">
+      <img w-full :src="coverUrl" alt="Preview Image" />
+    </el-dialog>
+  </el-card>
+</template>
+<style lang="scss" scoped>
+.card {
+  height: calc(100vh - 110px);
+  overflow: hidden;
+}
+.publish-btn {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.flex_r {
+  display: flex;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.form-item {
+  &45 {
+    width: 45%;
+    font-weight: bold;
+  }
+
+  &100 {
+    width: 100%;
+    font-weight: bold;
+  }
+}
+
+:deep(.el-select-dropdown__item) {
+  padding: 0 5px;
+}
+
+:deep(.el-dialog.is-fullscreen) {
+  width: 800px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+:deep(.el-dialog__footer) {
+  position: absolute;
+  bottom: 0;
+  right: 5%;
+}
+
+.md-editor {
+  height: calc(100vh - 260px);
+}
+
+.article-cover {
+  :deep(.el-form-item__content) {
+    width: 260px !important;
+    height: 150px !important;
+  }
+
+  :deep(.el-upload-list__item) {
+    width: 260px !important;
+    height: 150px !important;
+    margin: 0 !important;
+    border: none !important;
+  }
+
+  :deep(.el-upload--picture-card) {
+    width: 260px !important;
+    height: 150px !important;
+  }
+
+  :deep(.el-upload-list--picture-card) {
+    width: 260px !important;
+    height: 150px !important;
+    margin: 0 !important;
+    border: none !important;
+  }
+}
+</style>

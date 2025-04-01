@@ -16,14 +16,14 @@ export default {
       meta: {
         title: "文章管理"
       }
-    },
-    {
-      path: "/article/article-edit",
-      name: "article-edit",
-      component: () => import("@/views/article/components/ArticleEdit.vue"),
-      meta: {
-        title: "文章编辑"
-      }
     }
+    // {
+    //   path: "/article/article-edit",
+    //   name: "article-edit",
+    //   component: () => import("@/views/article/components/ArticleEdit.vue"),
+    //   meta: {
+    //     title: "文章编辑"
+    //   }
+    // }
   ]
 } satisfies RouteConfigsTable;

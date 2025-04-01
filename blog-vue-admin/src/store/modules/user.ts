@@ -93,7 +93,7 @@ export const useUserStore = defineStore({
         refreshTokenApi(data)
           .then(data => {
             if (data) {
-              setToken(data.data);
+              setToken(data.result);
               resolve(data);
             }
           })
