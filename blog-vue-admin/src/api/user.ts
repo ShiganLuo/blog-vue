@@ -46,6 +46,6 @@ export const refreshTokenApi = (data?: object) => {
   return http.request<RefreshTokenResult>(
     "post",
     "/api/admin/users/refreshToken",
-    { data: typeof data === "string" ? JSON.parse(data) : data }
+    { data }
   );
 };

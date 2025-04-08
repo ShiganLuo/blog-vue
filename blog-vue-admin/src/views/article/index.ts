@@ -8,9 +8,10 @@ import {
   addArticle,
   editArticle,
   getArticleById,
-  titleExist
+  titleExist,
+  imgUpload
 } from "@/api/article";
-import { imgUpload, mdImgUpload } from "@/api/site";
+import { mdImgUpload } from "@/api/site";
 import { tagV, coverV } from "./validator";
 import { ElLoading } from "element-plus";
 import { useNav } from "@/layout/hooks/useNav";
@@ -137,8 +138,8 @@ export function useArticle() {
         text: "图片上传中"
       });
       const res = await imgUpload(articleForm.coverList[0]);
-      if (res.code == 0) {
-        const { url } = res.result;
+      if (res.code == 200) {
+        const url = res.result;
         articleForm.article_cover = url;
       }
       upLoadLoading.close();
@@ -162,7 +163,7 @@ export function useArticle() {
       files.map(file => {
         return new Promise((resolve, reject) => {
           mdImgUpload(file).then(imgData => {
-            if (imgData.code == 0) {
+            if (imgData.code == 200) {
               const { url } = imgData.result;
               resolve(url);
             } else {
@@ -185,7 +186,7 @@ export function useArticle() {
     // 当创建新的分类或者是标签时 类型是string而id是number
     if (typeof category_id == "number") {
       newCategory = categoryOptionList.value.find(
-        category => (category.id = category_id)
+        category => category.id === category_id
       );
     } else {
       newCategory = {
@@ -194,14 +195,15 @@ export function useArticle() {
     }
     tagIdList.forEach(tagId => {
       if (typeof tagId == "number") {
-        newTagList.push(tagOptionList.value.find(tag => tag.id == tagId));
+        newTagList.push(tagOptionList.value.find(tag => tag.id === tagId));
       } else {
         newTagList.push({
           tag_name: tagId
         });
       }
     });
-
+    console.log(newCategory);
+    console.log(newTagList);
     restArticle.category = newCategory;
     restArticle.tagList = newTagList;
     if (id) {
@@ -237,12 +239,13 @@ export function useArticle() {
         let res;
         if (!finalArticle.id) {
           // 新增
+          console.log(finalArticle);
           res = await addArticle(finalArticle);
         } else {
           // 编辑
           res = await editArticle(finalArticle);
         }
-        if (res.code == 0) {
+        if (res.code == 200) {
           message(res.message, { type: "success" });
           resetForm(formEl.value);
           resetForm(articleFormRef.value);
@@ -274,7 +277,7 @@ export function useArticle() {
   // 根据id获取文章详情
   async function getArticleDetailsById(article_id) {
     const res = await getArticleById(article_id);
-    if (res.code == 0) {
+    if (res.code == 200) {
       const { article_cover } = res.result;
       Object.assign(articleForm, res.result);
 
@@ -296,7 +299,7 @@ export function useArticle() {
     await getCategoryD();
 
     if (!route.query.articleId) return;
-    // 根据id获取文章信息
+    // 根据id获取文章信息,articleId从url中获取
     getArticleDetailsById(route.query.articleId);
   });
 

@@ -1,4 +1,6 @@
 import { http } from "@/utils/http";
+import { ElMessage } from "element-plus";
+import { imageConversion } from "@/utils/utils";
 
 export type ArticleResult = {
   code: number;
@@ -77,4 +79,35 @@ export const titleExist = data => {
   return http.request<ArticleResult>("post", `/api/admin/articles/titleExist`, {
     data
   });
+};
+
+/**设置文章封面 */
+export const imgUpload = async data => {
+  // 文件压缩 太大了上传不了，我的服务器比较垃圾
+  let res;
+  // 没有raw.size 就表示已经压缩过了（多图片上传那里我压缩了一次） 有的话小于800不用压缩
+  if (data.raw.size / 1024 > 820) {
+    const file = await imageConversion(data.raw);
+    if (!file) {
+      ElMessage.error("图片上传失败");
+      return;
+    } else {
+      res = file;
+    }
+  } else {
+    res = data.raw;
+  }
+  const formData = new FormData();
+  formData.append("file", res);
+  formData.append("articleId", "2");
+  return http.request<ArticleResult>(
+    "post",
+    `/api/admin/articles/uploadCover`,
+    {
+      data: formData,
+      headers: {
+        "Content-Type": "multipart/form-data" // 手动声明 Content-Type
+      }
+    }
+  );
 };
