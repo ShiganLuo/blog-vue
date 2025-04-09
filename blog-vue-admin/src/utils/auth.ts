@@ -84,7 +84,7 @@ export function setToken(data: DataInfo<Date>) {
       permissions
     });
   }
-
+  //如果当前有新的用户数据，更新登录状态；否则从本地存储恢复用户信息
   if (data.username && data.roles) {
     const { username, roles } = data;
     setUserKey({

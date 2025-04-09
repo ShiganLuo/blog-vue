@@ -32,7 +32,7 @@ export function useArticle() {
     category_id: null,
     tagIdList: [],
     tagList: [],
-    author_id: 0,
+    author_name: "",
     article_content: "",
     article_cover: "",
     is_top: 2, // 置顶 1 置顶 2 取消置顶
@@ -43,7 +43,12 @@ export function useArticle() {
     coverList: [],
     article_description: "" // 文章描述
   });
-
+  interface articleRequest {
+    title: string;
+    summary: string;
+    content: string;
+    author: string;
+  }
   const tagOptionList = ref([]);
   const categoryOptionList = ref([]);
 
@@ -177,17 +182,21 @@ export function useArticle() {
     callback(res);
   }
 
-  // 整理文章的数据返回给后端
+  // 整理文章的数据返回给后端,剥离响应式以正确序列化发送请求
   function arrangeArticle(articleForm) {
     const { id, category_id, tagIdList, ...restArticle } = articleForm;
     let newCategory;
     const newTagList = [];
 
-    // 当创建新的分类或者是标签时 类型是string而id是number
+    // ​根据输入的 category_id 类型区分「选择已有分类」和「创建新分类」两种场景
     if (typeof category_id == "number") {
-      newCategory = categoryOptionList.value.find(
+      const foundCategory = categoryOptionList.value.find(
         category => category.id === category_id
       );
+      newCategory = {
+        id: foundCategory.id,
+        category_name: foundCategory.name
+      };
     } else {
       newCategory = {
         category_name: category_id
@@ -195,27 +204,32 @@ export function useArticle() {
     }
     tagIdList.forEach(tagId => {
       if (typeof tagId == "number") {
-        newTagList.push(tagOptionList.value.find(tag => tag.id === tagId));
+        const foundTag = tagOptionList.value.find(tag => tag.id === tagId);
+        newTagList.push({
+          id: foundTag.id,
+          tag_name: foundTag.name
+        });
       } else {
         newTagList.push({
           tag_name: tagId
         });
       }
     });
-    console.log(newCategory);
-    console.log(newTagList);
     restArticle.category = newCategory;
     restArticle.tagList = newTagList;
     if (id) {
       restArticle.id = id;
     }
-    // 谁发布的
+    // 如果文章是新创建的，从登录状态获取用户名赋值给author_name
     if (!id) {
-      restArticle.author_id = username ? username : "hello";
+      restArticle.author_name = username ? username?.value : "hello";
     }
+    // type为1表示原创，没有原文链接
     if (restArticle.type == 1) {
       restArticle.origin_url = null;
     }
+    //删除封面图片，此功能由uploadCover实现
+    delete restArticle.coverList;
     return restArticle;
   }
 
@@ -238,9 +252,16 @@ export function useArticle() {
         const finalArticle = arrangeArticle(articleForm);
         let res;
         if (!finalArticle.id) {
-          // 新增
+          // 创建文章返回文章id
           console.log(finalArticle);
-          res = await addArticle(finalArticle);
+          const articleData: articleRequest = {
+            title: finalArticle?.article_title,
+            summary: finalArticle?.article_description,
+            content: finalArticle?.article_content,
+            author: finalArticle?.author_name
+          };
+          res = await addArticle(articleData);
+          articleForm.id = res.result;
         } else {
           // 编辑
           res = await editArticle(finalArticle);
