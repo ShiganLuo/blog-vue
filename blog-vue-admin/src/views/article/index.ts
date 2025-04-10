@@ -9,7 +9,9 @@ import {
   editArticle,
   getArticleById,
   titleExist,
-  imgUpload
+  imgUpload,
+  addCategory,
+  addTag
 } from "@/api/article";
 import { mdImgUpload } from "@/api/site";
 import { tagV, coverV } from "./validator";
@@ -48,6 +50,14 @@ export function useArticle() {
     summary: string;
     content: string;
     author: string;
+  }
+  interface categoryRequest {
+    categoryName: string;
+    articleId: number;
+  }
+  interface tagRequest {
+    tagNames: [];
+    articleId: number;
   }
   const tagOptionList = ref([]);
   const categoryOptionList = ref([]);
@@ -136,13 +146,13 @@ export function useArticle() {
     });
   }
   // 图片上传
-  async function uploadCover() {
+  async function uploadCover(articleId) {
     if (!articleForm.coverList[0].id) {
       const upLoadLoading = ElLoading.service({
         fullscreen: true,
         text: "图片上传中"
       });
-      const res = await imgUpload(articleForm.coverList[0]);
+      const res = await imgUpload(articleForm.coverList[0], articleId);
       if (res.code == 200) {
         const url = res.result;
         articleForm.article_cover = url;
@@ -238,7 +248,6 @@ export function useArticle() {
     await formEl.validate(async valid => {
       if (valid) {
         // 图片上传
-        await uploadCover();
 
         if (type == 1) {
           // 1 是保存草稿 2 是直接发布
@@ -261,7 +270,21 @@ export function useArticle() {
             author: finalArticle?.author_name
           };
           res = await addArticle(articleData);
-          articleForm.id = res.result;
+          if (res.code == 200) {
+            finalArticle.id = res.result;
+            await uploadCover(res.result);
+            const categoryData: categoryRequest = {
+              categoryName: finalArticle?.category?.category_name,
+              articleId: finalArticle?.id
+            };
+            await addCategory(categoryData);
+            const tagData: tagRequest = {
+              tagNames: finalArticle?.tagList?.map(tag => tag.tag_name),
+              articleId: finalArticle?.id
+            };
+            console.log(tagData);
+            await addTag(tagData);
+          }
         } else {
           // 编辑
           res = await editArticle(finalArticle);

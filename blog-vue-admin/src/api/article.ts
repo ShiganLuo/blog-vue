@@ -73,6 +73,20 @@ export const getArticleById = id => {
     {}
   );
 };
+/**设置文章分类 */
+export const addCategory = data => {
+  return http.request<ArticleResult>(
+    "post",
+    `/api/admin/articles/uploadCategory`,
+    { data }
+  );
+};
+/**设置文章标签 */
+export const addTag = data => {
+  return http.request<ArticleResult>("post", `/api/admin/articles/uploadTag`, {
+    data
+  });
+};
 
 /** 根据文章标题 和 id 判断文章标题是否重复了 */
 export const titleExist = data => {
@@ -82,7 +96,7 @@ export const titleExist = data => {
 };
 
 /**设置文章封面 */
-export const imgUpload = async data => {
+export const imgUpload = async (data, articleId) => {
   // 文件压缩 太大了上传不了，我的服务器比较垃圾
   let res;
   // 没有raw.size 就表示已经压缩过了（多图片上传那里我压缩了一次） 有的话小于800不用压缩
@@ -99,7 +113,7 @@ export const imgUpload = async data => {
   }
   const formData = new FormData();
   formData.append("file", res);
-  formData.append("articleId", "2");
+  formData.append("articleId", articleId);
   return http.request<ArticleResult>(
     "post",
     `/api/admin/articles/uploadCover`,
