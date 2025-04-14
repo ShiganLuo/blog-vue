@@ -29,14 +29,14 @@ export function useArticle() {
 
   const articleForm = reactive({
     id: "",
-    article_title: "",
+    title: "",
     category: {},
     category_id: null,
     tagIdList: [],
     tagList: [],
     author_name: "",
-    article_content: "",
-    article_cover: "",
+    content: "",
+    coverImage: "",
     is_top: 2, // 置顶 1 置顶 2 取消置顶
     order: 1, // 置顶文章的排序
     status: 1, // 状态 1 公开 2 私密 3 回收站（相当于草稿）
@@ -46,6 +46,13 @@ export function useArticle() {
     article_description: "" // 文章描述
   });
   interface articleRequest {
+    title: string;
+    summary: string;
+    content: string;
+    author: string;
+  }
+  interface articleUpdate {
+    id: number;
     title: string;
     summary: string;
     content: string;
@@ -67,12 +74,12 @@ export function useArticle() {
 
   // 校验规则
   const articleFormRules = reactive({
-    article_title: {
+    title: {
       required: true,
       trigger: "blur",
       message: "请输入文章标题"
     },
-    article_content: {
+    content: {
       required: true,
       message: "请输入文章内容",
       trigger: "blur"
@@ -155,15 +162,15 @@ export function useArticle() {
       const res = await imgUpload(articleForm.coverList[0], articleId);
       if (res.code == 200) {
         const url = res.result;
-        articleForm.article_cover = url;
+        articleForm.coverImage = url;
       }
       upLoadLoading.close();
     }
   }
 
   async function articleTitleVAlidate() {
-    const { id, article_title } = articleForm;
-    const res = await titleExist({ id, article_title });
+    const { id, title } = articleForm;
+    const res = await titleExist({ id, title });
     if (res.code != 200) {
       canPublish.value = false;
       message("文章标题已存在，换一个试试", { type: "warning" });
@@ -264,9 +271,9 @@ export function useArticle() {
           // 创建文章返回文章id
           console.log(finalArticle);
           const articleData: articleRequest = {
-            title: finalArticle?.article_title,
+            title: finalArticle?.title,
             summary: finalArticle?.article_description,
-            content: finalArticle?.article_content,
+            content: finalArticle?.content,
             author: finalArticle?.author_name
           };
           res = await addArticle(articleData);
@@ -286,8 +293,27 @@ export function useArticle() {
             await addTag(tagData);
           }
         } else {
+          await uploadCover(finalArticle.id);
+          const categoryData: categoryRequest = {
+            categoryName: finalArticle?.category?.category_name,
+            articleId: finalArticle?.id
+          };
+          await addCategory(categoryData);
+          const tagData: tagRequest = {
+            tagNames: finalArticle?.tagList?.map(tag => tag.tag_name),
+            articleId: finalArticle?.id
+          };
+          console.log(tagData);
+          await addTag(tagData);
           // 编辑
-          res = await editArticle(finalArticle);
+          const articleData: articleUpdate = {
+            id: finalArticle?.id,
+            title: finalArticle?.title,
+            summary: finalArticle?.article_description,
+            content: finalArticle?.content,
+            author: finalArticle?.author_name
+          };
+          res = await editArticle(articleData);
         }
         if (res.code == 200) {
           message(res.message, { type: "success" });
@@ -322,19 +348,7 @@ export function useArticle() {
   async function getArticleDetailsById(article_id) {
     const res = await getArticleById(article_id);
     if (res.code == 200) {
-      const { article_cover } = res.result;
       Object.assign(articleForm, res.result);
-
-      articleForm.coverList = [
-        {
-          // 获取数组最后一位有很多种方法 article_cover.split('/').reverse()[0]
-          //           article_cover.split('/').slice(-1)
-          //           article_cover.split('/').at(-1)
-          id: 1,
-          name: article_cover.split("/").pop(),
-          url: article_cover
-        }
-      ];
     }
   }
 

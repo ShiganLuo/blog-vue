@@ -28,7 +28,7 @@ export const addArticle = (data?: object) => {
 
 /** 修改文章 */
 export const editArticle = (data?: object) => {
-  return http.request<ArticleResult>("put", "/api/admin/articles/update", {
+  return http.request<ArticleResult>("post", "/api/admin/articles/update", {
     data
   });
 };

@@ -42,10 +42,10 @@ const {
         style="width: 65%"
         label-width="80"
         label="文章标题"
-        prop="article_title"
+        prop="title"
       >
         <el-input
-          v-model="articleForm.article_title"
+          v-model="articleForm.title"
           placeholder="请输入文章标题"
           clearable
           maxlength="55"
@@ -63,11 +63,8 @@ const {
           >
         </div>
       </el-form-item>
-      <el-form-item style="width: 100%; height: auto" prop="article_content">
-        <MdEditor
-          v-model="articleForm.article_content"
-          @onUploadImg="uploadImage"
-        />
+      <el-form-item style="width: 100%; height: auto" prop="content">
+        <MdEditor v-model="articleForm.content" @onUploadImg="uploadImage" />
       </el-form-item>
     </el-form>
     <el-dialog
@@ -86,12 +83,8 @@ const {
         class="bg-bg_color w-[99/100]"
         label-width="120"
       >
-        <el-form-item
-          class="form-item100"
-          label="文章标题"
-          prop="article_title"
-        >
-          {{ articleForm.article_title }}
+        <el-form-item class="form-item100" label="文章标题" prop="title">
+          {{ articleForm.title }}
         </el-form-item>
         <el-form-item
           class="form-item100"
