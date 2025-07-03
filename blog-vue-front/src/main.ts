@@ -1,17 +1,26 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import { useUserStore } from './stores/user'
 import App from './App.vue'
 import router from './router'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
-const app = createApp(App)
+// 引入 Element Plus 的暗黑主题
+import "element-plus/theme-chalk/dark/css-vars.css";
+// 自定义css
+import "@/assets/css/iconFont/iconfont.css";
 
+
+// svg
+import "virtual:svg-icons-register";
+// 指令
+import vCopy from "./directives/copy";
+import image from "./directives/imageLoading";
+const app = createApp(App)
+app.directive("copy", vCopy);
+app.directive("image", image);
 app.use(createPinia())
 app.use(router)
+// 全局注册不需要再组件内重复引入
 app.use(ElementPlus)
-// 初始化用户状态
-const userStore = useUserStore()
-userStore.init()
 
 app.mount('#app')

@@ -1,5 +1,7 @@
 // utils/geolocation.ts
 import axios from 'axios'
+import { Base64 } from "js-base64";
+import { config } from "@/config/config"; // 确保你有 config，且里面有 ENCRYPTION 字段
 
 export async function getVisitorLocation() {
   try {
@@ -44,19 +46,19 @@ export function calculateDistance(
     const radLat2 = rad(lat2);
     const a = radLat1 - radLat2;
     const b = rad(lon1) - rad(lon2);
-  
+
     const sinHalfA = Math.sin(a / 2);
     const sinHalfB = Math.sin(b / 2);
     const cosRadLat1 = Math.cos(radLat1);
     const cosRadLat2 = Math.cos(radLat2);
-  
+
     const s = 2 * Math.asin(
       Math.sqrt(
-        sinHalfA * sinHalfA + 
+        sinHalfA * sinHalfA +
         cosRadLat1 * cosRadLat2 * sinHalfB * sinHalfB
       )
     );
-  
+
     return R * s
 }
 
@@ -65,4 +67,137 @@ export function isMobile() {
   let reg =
     /(phone|pad|iPhone|iPod|ios|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i;
   return reg.test(navigator.userAgent);
+}
+
+// 读取localStorage并解密
+export const _getLocalItem = (key: string | null | undefined): any => {
+  try {
+    if (!key) {
+      return "";
+    }
+
+    let storageKey = config.ENCRYPTION ? Base64.encode(key) : key;
+    let value = localStorage.getItem(storageKey);
+
+    if (value === null || value === undefined || value === "") {
+      return "";
+    } else {
+      const decodedValue = config.ENCRYPTION ? Base64.decode(value) : value;
+      return JSON.parse(decodedValue);
+    }
+  } catch (err) {
+    console.error(err);
+    return ""; // 捕获异常时也返回空字符串，防止外面调用出错
+  }
+};
+
+// 将数据存储到localStorage中，并在存储前对数据进行加密处理
+export const _setLocalItem = (key: string, value: any): void => {
+  try {
+    if (key === "" || key === undefined) {
+      return;
+    }
+    if (key) {
+      if (value == 0) {
+        value = JSON.stringify(value);
+        localStorage.setItem(config.ENCRYPTION ? Base64.encode(key) : key, value);
+        return;
+      }
+      if (value === null || value === undefined || value === "") {
+        return;
+      }
+      // 编码
+      let enObj = JSON.stringify(value);
+      if (config.ENCRYPTION) {
+        localStorage.setItem(Base64.encode(key), Base64.encode(enObj));
+      } else {
+        localStorage.setItem(key, enObj);
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+// 给一些数字转成k w
+export function numberFormate(number: number | string | undefined): string {
+  if (!number) return '0'; // 返回 '0' 字符串，而不是数字
+
+  number = typeof number === "number" ? number : parseFloat(number as string);
+
+  let res: string;
+  if (number >= 10000) {
+    res = (number / 10000).toFixed(1) + "w";
+  } else if (number >= 1000) {
+    res = (number / 1000).toFixed(1) + "k";
+  } else {
+    res = number.toString();
+  }
+  return res;
+}
+
+export function debounce(fn: (...args: any[]) => void, delay: number) {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+
+  return function (this: unknown, ...args: any[]) {  // 使用 `this: unknown` 来显式声明 `this` 类型
+    if (timer) {
+      clearTimeout(timer);
+    }
+    timer = setTimeout(() => {
+      fn.apply(this, args);  // `this` 已被明确为 `unknown`
+    }, delay);
+  };
+}
+
+export function randomFontColor() {
+  return `rgb(${Math.round(Math.random() * 255)},${Math.round(Math.random() * 255)},${Math.round(
+    Math.random() * 255
+  )})`;
+}
+
+export function containHTML(text: string): boolean {
+  const reg: RegExp = /<[^>]+>/g;
+  const badJs: RegExp = /script|alert|window|prompt|location|href|iframe|onload|onerror/g;
+
+  return reg.test(text) && !badJs.test(text);
+}
+
+export const _removeLocalItem = function (key: string | null | undefined): void {
+  if (key === null || key === '' || key === undefined) {
+    return;
+  }
+
+  const enObj = config.ENCRYPTION ? Base64.encode(key) : key;
+  localStorage.removeItem(enObj);
+};
+
+/**
+ * 根据时间欢迎
+ * @param nickName 昵称（可选）
+ * @returns 欢迎语句
+ */
+export function getWelcomeSay(nickName?: string): string {
+  if (!nickName) {
+    return "欢迎来到小张的个人博客";
+  }
+
+  const now = new Date().getHours();
+
+  if (now >= 0 && now < 5) {
+    return `夜深了：${nickName}，请注意休息！`;
+  } else if (now >= 5 && now < 9) {
+    return `早上好：${nickName}，今天又是活力满满的一天！`;
+  } else if (now >= 9 && now < 12) {
+    return `上午好：${nickName}，请合理安排时间摸鱼！`;
+  } else if (now >= 12 && now < 14) {
+    return `中午好：${nickName}，现在正适合睡一觉`;
+  } else if (now >= 14 && now < 18) {
+    return `下午好：${nickName}`;
+  } else if (now >= 18 && now < 20) {
+    return `傍晚好：${nickName}，记得按时吃饭`;
+  } else if (now >= 20 && now < 22) {
+    return `晚上好: ${nickName}`;
+  } else {
+    return `晚上好: ${nickName}，记得按时碎觉哦`;
+  }
 }

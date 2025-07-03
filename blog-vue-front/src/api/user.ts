@@ -1,4 +1,4 @@
-import { request} from "./http/index";
+import { request,fullRequest } from "./http/index";
 
 export type UserResult = {
     /** `token` */
@@ -31,8 +31,8 @@ export type RefreshTokenResult = {
 /** 登录 */
 export const login = (data?: object) => {
   return request<UserResult>({
-    method:"post", 
-    url: "/api/admin/users/login", 
+    method:"post",
+    url: "/api/admin/users/login",
     data: data }
     );
 };
@@ -42,6 +42,38 @@ export const refreshTokenApi = (data?: object) => {
   return request<RefreshTokenResult>({
     method: "post",
     url: "/api/admin/users/refreshToken",
-    data: data 
+    data: data
     });
 };
+/** 注册 */
+export const register = (data?: object) => {
+  return request({
+    method: "post",
+    url: "/api/admin/users/register",
+    data: data
+  })
+}
+export const getUserInfoById = (data?: object) => {
+  return request({
+    method: "post",
+    url: "/api/admin/users/getUserInfoById",
+    data: data
+  })
+}
+
+export const reqLogin = (data?: object) => {
+  return fullRequest<UserResult>({
+    method: "post",
+    url: "/api/admin/users/login",
+    data: data
+  });
+}
+
+export const reqRegister = (data?: object) => {
+  return fullRequest({
+    method: "post",
+    url: "/api/admin/users/register",
+    data: data
+  });
+}
+

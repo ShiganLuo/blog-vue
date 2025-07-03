@@ -1,43 +1,45 @@
 import axios from 'axios'
-import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
-import type { BaseResponse} from './types'
+import type {
+  AxiosInstance,
+  AxiosRequestConfig,
+  AxiosResponse,
+  InternalAxiosRequestConfig
+} from 'axios'
+import type { BaseResponse } from './types'
 import { API_CODE } from './types'
 
 const service: AxiosInstance = axios.create({
   timeout: 10000,
   headers: {
-    Accept: "application/json, text/plain, */*",
-    "Content-Type": "application/json",
-    "X-Requested-With": "XMLHttpRequest"
-  },
+    Accept: 'application/json, text/plain, */*',
+    'Content-Type': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest'
+  }
 })
 
 // 请求拦截器
-service.interceptors.request.use((config) => {
+service.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   config.headers = config.headers || {}
   config.headers['Authorization'] = localStorage.getItem('token') || ''
   return config
 })
 
-// 响应拦截器
+// 响应拦截器（泛型支持关键点 ✅）
 service.interceptors.response.use(
-  (response: AxiosResponse<BaseResponse>) => {
+  <T>(response: AxiosResponse<BaseResponse<T>>): T => {
     const res = response.data
 
-    // 根据业务码处理不同场景
     switch (res.code) {
       case API_CODE.SUCCESS:
-        return res.result // 直接返回result字段数据
+        return res.result as T // ✅ 强制返回泛型 result 字段
       case API_CODE.UNAUTHORIZED:
         window.location.href = '/login'
-        return Promise.reject(new Error('请重新登录'))
+        throw new Error('请重新登录')
       default:
-        // 其他错误消息提示
-        return Promise.reject(new Error(res.message || 'Error'))
+        throw new Error(res.message || '请求失败')
     }
   },
   (error) => {
-    // 处理HTTP错误状态码
     const messageMap: Record<number, string> = {
       400: '请求错误',
       401: '未授权',
@@ -51,21 +53,21 @@ service.interceptors.response.use(
 )
 
 /**
- * 封装核心请求方法
- * @param config - 请求配置
+ * 简化请求（返回 result 字段内容）
+ * @param config 请求配置
  */
 export function request<T = any>(config: AxiosRequestConfig): Promise<T> {
-  return service(config)
+  return service.request<any, T>(config) // ✅ 关键泛型位置
 }
 
 /**
- * 带完整响应结构的请求（保留code/message）
- * @param config - 请求配置
+ * 获取完整结构（code + message + result）
+ * @param config 请求配置
  */
 export function fullRequest<T = any>(
   config: AxiosRequestConfig
 ): Promise<BaseResponse<T>> {
-  return service(config).then((res) => res.data)
+  return axios.request<BaseResponse<T>>(config).then((res) => res.data)
 }
 
 export default service
