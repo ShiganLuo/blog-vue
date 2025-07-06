@@ -98,7 +98,7 @@ const getConfigDetail = async (): Promise<void> => {
 // 获取文章数、分类数、标签数
 const getStatistic = async (): Promise<void> => {
   const res = await homeGetStatistic();
-  if (res.code === 0) {
+  if (res.code === 200) {
     Object.assign(configDetail.value, res.result);
   }
 };
@@ -106,7 +106,7 @@ const getStatistic = async (): Promise<void> => {
 // 获取所有标签
 const getAllTags = async (): Promise<void> => {
   const res = await getAllTag();
-  if (res.code === 0) {
+  if (res.code === 200) {
     tags.value = (res.result as Tag[]).map(r => ({
       ...r,
       color: randomFontColor()

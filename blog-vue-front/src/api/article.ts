@@ -23,7 +23,7 @@ interface homeGetArticleListResult {
 export const homeGetArticleList = (data?: homeGetArticleListParam) => {
     return fullRequest<homeGetArticleListResult>({
         method: 'post',
-        url: '',
+        url: '/api/front/articles/getArticleList',
         data:data
     })
 }

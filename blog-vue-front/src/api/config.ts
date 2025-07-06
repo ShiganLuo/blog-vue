@@ -1,8 +1,8 @@
-import { request } from "./http";
+import { request,fullRequest } from "./http";
 export const homeGetConfig = (data?: object) => {
-    return request({
-        method: 'post',
-        url: '',
+    return fullRequest({
+        method: 'get',
+        url: '/api/front/settings/getBlogConfig',
         data:data
     })
 
