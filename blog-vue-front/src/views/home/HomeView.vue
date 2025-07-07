@@ -29,6 +29,16 @@ interface ConfigDetail {
   we_chat_group?: string;
   blog_notice?: string;
   // 其他配置字段...
+  avatar_bg?: string;
+  blog_name?: string;
+  personal_say?: string;
+  categoryCount?: number;
+  tagCount?: number;
+  git_ee_link?: string;
+  bilibili_link?: string;
+  github_link?: string;
+  we_chat_link?: string;
+  qq_link?: string;
 }
 
 interface Tag {
@@ -117,13 +127,19 @@ const getAllTags = async (): Promise<void> => {
 // 计算网站运行天数
 const calcRuntimeDays = (time: string): void => {
   if (time) {
-    const formattedTime = time.replace(/-/g, '/');
+    // ISO-8601 兼容，浏览器能解析 "2025-07-06T14:13:12"
     const now = new Date().getTime();
-    const created = new Date(formattedTime).getTime();
-    const days = Math.floor((now - created) / 8.64e7);
-    runtime.value = days;
+    const created = new Date(time).getTime();
+
+    if (!isNaN(created)) {
+      const days = Math.floor((now - created) / 8.64e7); // 8.64e7 = 1000 * 60 * 60 * 24
+      runtime.value = days;
+    } else {
+      console.warn("无法解析时间格式:", time);
+    }
   }
 };
+
 
 const init = async (): Promise<void> => {
   param.loading = true;
