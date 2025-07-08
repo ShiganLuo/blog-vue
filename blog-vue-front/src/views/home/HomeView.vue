@@ -44,6 +44,9 @@ interface ConfigDetail {
 interface Tag {
   id: number;
   tag_name: string;
+}
+
+interface ColoredTag extends Tag {
   color: string;
 }
 
@@ -89,7 +92,7 @@ const pagination = (page: { current: number }): void => {
 const rightSizeLoading: Ref<boolean> = ref(false);
 const runtime: Ref<number> = ref(0);
 const configDetail: Ref<ConfigDetail> = ref({});
-const tags: Ref<Tag[]> = ref([]);
+const tags: Ref<ColoredTag[]> = ref([]);
 
 // 获取网站详细信息
 const getConfigDetail = async (): Promise<void> => {
@@ -105,23 +108,19 @@ const getConfigDetail = async (): Promise<void> => {
   }
 };
 
-// 获取文章数、分类数、标签数
-const getStatistic = async (): Promise<void> => {
-  const res = await homeGetStatistic();
-  if (res.code === 200) {
-    Object.assign(configDetail.value, res.result);
-  }
-};
-
 // 获取所有标签
 const getAllTags = async (): Promise<void> => {
   const res = await getAllTag();
-  if (res.code === 200) {
-    tags.value = (res.result as Tag[]).map(r => ({
-      ...r,
+
+  if (res.code === 200 && Array.isArray(res.result)) {
+    tags.value = res.result.map((tag: Tag): ColoredTag => ({
+      ...tag,
       color: randomFontColor()
     }));
+  } else {
+    console.warn('返回数据不符合预期:', res);
   }
+  console.log(tags.value)
 };
 
 // 计算网站运行天数
@@ -147,7 +146,6 @@ const init = async (): Promise<void> => {
   await Promise.all([
     getHomeArticleList(),
     getConfigDetail(),
-    getStatistic(),
     getAllTags()
   ]);
 };

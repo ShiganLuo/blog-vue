@@ -1,9 +1,8 @@
-import { request } from "./http";
+import { fullRequest } from "./http";
 export const getAllTag = ( data?: object ) => {
-    return request({
-        method: 'post',
-        url: ' ',
+    return fullRequest({
+        method: 'get',
+        url: '/api/front/tags/getAllTags',
         data: data
-        
     })
 }
