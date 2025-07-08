@@ -20,7 +20,7 @@ interface Article {
   article_title?: string;
   createdAt?: string;
   updatedAt?: string;
-  categoryName?: string;
+  categoryNameList?: string[];
   tagNameList?: string[];
   thumbs_up_times?: number;
   view_times?: number;
@@ -179,14 +179,18 @@ watch(
                   <span class="article-meta__separator"></span>
                   <span class="to_pointer" @click="operate('category', item)">
                     <i class="iconfont icon-folder"></i>
-                    <span class="meta-value">{{ item.categoryName }}</span>
+                    <span
+                    class="meta-value"
+                    v-for="(categoryName, index) in (item.categoryNameList ?? []).slice(0, 3)"
+                    :key="index"
+                    >{{ index == (item.categoryNameList ?? []).length - 1 ? categoryName : categoryName + "、" }}</span>
                   </span>
                   <span class="article-meta__separator"></span>
                   <span class="to_pointer" @click="operate('tag', item)">
                     <i class="iconfont icon-label_fill"></i>
                     <span
                       class="meta-value"
-                      v-for="(tagName, index) in item.tagNameList"
+                      v-for="(tagName, index) in (item.tagNameList ?? []).slice(0, 3)"
                       :key="index"
                     >
                       {{ index == (item.tagNameList ?? []).length - 1 ? tagName : tagName + "、" }}

@@ -201,3 +201,54 @@ export function getWelcomeSay(nickName?: string): string {
     return `晚上好: ${nickName}，记得按时碎觉哦`;
   }
 }
+
+// 保持光标在元素内容最后
+export function keepLastIndex(dom: HTMLElement): void {
+  let range;
+  if (window.getSelection) {
+    dom.focus(); // FF需先聚焦
+    const selection = window.getSelection();
+    if (!selection) return;
+
+    range = document.createRange();
+    range.selectNodeContents(dom);
+    range.collapse(false); // 光标移至末尾
+
+    selection.removeAllRanges();
+    selection.addRange(range);
+  } else if ((document as any).selection) {
+    // IE <= 8
+    range = (document as any).selection.createRange();
+    range.moveToElementText(dom);
+    range.collapse(false);
+    range.select();
+  }
+}
+
+// 获取当前光标位置
+export function getCurrentIndex(): number {
+  if (window.getSelection) {
+    const selection = window.getSelection();
+    return selection?.focusOffset ?? 0;
+  } else if ((document as any).selection) {
+    const selection = (document as any).selection.createRange();
+    return selection?.focusOffset ?? 0;
+  }
+  return 0;
+}
+
+// 获取评论类型编码
+export function getCurrentType(type: string): number {
+  switch (type) {
+    case "article":
+      return 1;
+    case "talk":
+      return 2;
+    case "message":
+      return 3;
+    case "comment":
+      return 4;
+    default:
+      return 0;
+  }
+}

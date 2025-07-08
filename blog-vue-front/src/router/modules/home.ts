@@ -28,6 +28,14 @@ const routes: RouteRecordRaw[] = [
             keepAlive: true // 缓存页面
           }
       },
+      {
+        path: "/article",
+        name: "Article",
+        meta: {
+          name: "文章",
+        },
+        component: () => import("@/views/article/article.vue"),
+      },
     ]
   }
 

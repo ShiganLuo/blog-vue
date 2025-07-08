@@ -3,7 +3,7 @@ import { ref, reactive, onMounted,watch } from 'vue'
 import { RouterView, useRouter, useRoute } from 'vue-router'
 import { addView } from './api/site';
 import { isMobile } from './utils/tool';
-import WelcomeMessage from "@/components/WelcomeMessage.vue";
+import WelcomeMessage from "@/components/WelcomeComps/WelcomeMessage.vue";
 import BackTop from "@/components/BackTop/index.vue";
 const isPc = ref(true);
 const router = useRouter();

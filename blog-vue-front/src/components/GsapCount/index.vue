@@ -30,7 +30,7 @@ const d = reactive<NumData>({
 // 实现动画的方法（明确返回类型）
 function AnimateToValue(): void {
   if (!id.value) return;
-  
+
   gsap.to(d, {
     scrollTrigger: `.num-${id.value}`,
     duration: props.duration,

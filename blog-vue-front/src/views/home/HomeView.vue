@@ -15,9 +15,17 @@ import { gsapTransY } from "@/utils/transform";
 
 // 类型定义
 interface Article {
-  id: number;
-  title: string;
-  // 根据实际接口补充其他字段
+  id?: string | number;
+  article_cover?: string;
+  article_title?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  categoryNameList?: string[];
+  tagNameList?: string[];
+  thumbs_up_times?: number;
+  view_times?: number;
+  article_description?: string;
+  is_top?: number;
 }
 
 interface ConfigDetail {
@@ -74,9 +82,9 @@ const getHomeArticleList = async (): Promise<void> => {
   try {
     const res = await homeGetArticleList( { pageNum: param.current, pageSize: param.size });
     if (res.code === 200) {
-      const { list, total } = res.result;
-      articleList.value = list;
+      const { total, list } = res.result;
       articleTotal.value = total;
+      articleList.value = list;
     }
   } finally {
     param.loading = false;
@@ -150,16 +158,10 @@ const init = async (): Promise<void> => {
   ]);
 };
 
-const observeMobileBox = (): void => {
-  nextTick(() => {
-    gsapTransY([".mobile-top-card", ".mobile-bottom-card"], -30, 0.3, "bounce.in");
-    gsapTransY([".mobile-bottom-card"], 30, 0.3, "none");
-  });
-};
+
 
 onMounted(async () => {
   await init();
-  observeMobileBox();
 });
 </script>
 
@@ -192,59 +194,6 @@ onMounted(async () => {
 </template>
 
 <style lang="scss" scoped>
-.mobile-top-card {
-  height: 31rem;
-  margin: 4px;
-
-  :deep(.info-avatar) {
-    padding: 0 2rem;
-  }
-
-  :deep(.personal-say) {
-    padding-left: 1rem;
-  }
-
-  :deep(.info-background) {
-    height: 12rem;
-    width: 100%;
-  }
-
-  :deep(.common-menu) {
-    padding: 1rem 5.5rem;
-  }
-
-  :deep(.git-ee) {
-    padding: 0 4rem;
-  }
-
-  :deep(.personal-link) {
-    padding: 1rem 6rem;
-  }
-}
-
-.mobile-bottom-card {
-  margin: 4px;
-  padding: 1rem;
-
-  .icon-localoffer {
-    font-weight: 900;
-  }
-
-  span {
-    margin-left: 0.3rem;
-  }
-
-  .site-info {
-    padding: 0.3rem 1rem;
-    line-height: 2;
-    font-size: 1rem;
-
-    .value {
-      font-weight: 600;
-    }
-  }
-}
-
 .group {
   margin-left: 0.3rem;
   width: 100%;

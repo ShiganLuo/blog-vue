@@ -44,3 +44,56 @@ export const getArticleByContent = (data?: object) => {
     data: data
   })
 }
+
+
+export const getArticleById = (data?: object) => {
+  return fullRequest({
+    method:  'post',
+    url: '',
+    data: data
+  })
+}
+
+export const getRecommendArticleById = (data?: object) => {
+  return fullRequest({
+    method:  'post',
+    url: '',
+    data: data
+  })
+}
+
+export const readingDuration = (data?: object) => {
+  return fullRequest({
+    method:  'post',
+    url: '',
+    data: data
+  })
+}
+
+// like
+
+export const addLike = (data?: object) => {
+  return fullRequest({
+    method:  'post',
+    url: '',
+    data: data
+  })
+}
+
+export const cancelLike = (data?: object) => {
+  return fullRequest({
+    method:  'post',
+    url: '',
+    data: data
+  })
+}
+
+export const getIsLikeByIdOrIpAndType = (data?: object) => {
+  return fullRequest({
+    method:  'post',
+    url: '',
+    data: data
+  })
+}
+
+
