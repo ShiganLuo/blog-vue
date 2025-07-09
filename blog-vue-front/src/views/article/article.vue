@@ -27,6 +27,11 @@ interface ArticleInfo {
   article_cover?: string;
   article_title?: string;
   createdAt?: string;
+  updatedAt?: string;
+  categoryNameList?: string[];
+  tagNameList?: string[];
+  view_times?: number;
+  reading_duration?: number;
 }
 
 interface MdState {
@@ -38,11 +43,12 @@ interface MdState {
 let setUpTimes: Date | null = null;
 let lastArticleId: string | null = null;
 let comment: Element | null = null;
-let observe: IntersectionObserver | null = null;
+let observe: IntersectionObserver | null = null; // 用于监听评论是否出现在可视区域内
 
 const commentRef = ref<InstanceType<typeof Comment> | null>(null);
 const commentIsOpen = ref(false);
 
+// 初始化pinia
 const router = useRouter();
 const route = useRoute();
 const staticStore = useStaticData();
@@ -54,6 +60,7 @@ const currentUrl = window.location.href;
 const isLike = ref(false);
 const likePending = ref(false);
 
+// 模仿md文档信息
 const mdState = reactive<MdState>({
   text: "",
   id: "my-editor",
@@ -63,7 +70,10 @@ const mdState = reactive<MdState>({
 const loading = ref(false);
 const articleInfo = ref<ArticleInfo>({} as ArticleInfo);
 const scrollElement = document.documentElement;
+
+// 移动端目录是否可见
 const drawerShow = ref(false);
+// 推荐文章
 const recommendList = ref<ArticleInfo[]>([]);
 const previousArticle = ref<ArticleInfo>({} as ArticleInfo);
 const nextArticle = ref<ArticleInfo>({} as ArticleInfo);
@@ -76,36 +86,50 @@ const goToArticle = (article: ArticleInfo): void => {
   router.push({ path: "/article", query: { id: article.id } });
 };
 
+// 文章点赞
 const like = async (): Promise<void> => {
   if (likePending.value) return;
   likePending.value = true;
   const userId = getUserInfo.value.id;
+  // 取消点赞
   if (isLike.value) {
-    const res = await cancelLike({ for_id: articleInfo.value.id, type: 1, user_id: userId });
-    if (res.code === 0) {
+    const res = await cancelLike({ article_id: articleInfo.value.id, type: 1, user_id: userId });
+    if (res.code === 200) {
       articleInfo.value.thumbs_up_times--;
       isLike.value = false;
       likePending.value = false;
-      ElNotification({ offset: 60, title: "提示", message: h("div", { style: "color: #7ec050; font-weight: 600;" }, "有什么不足可以给我留下评论，感谢指正") });
+      ElNotification({
+        offset: 60,
+        title: "提示",
+        message: h(
+          "div", { style: "color: #7ec050; font-weight: 600;" }, "有什么不足可以给我留下评论，感谢指正"
+          )
+        });
     }
-  } else {
-    const res = await addLike({ for_id: articleInfo.value.id, type: 1, user_id: userId });
-    if (res.code === 0) {
+  } else { // 点赞
+    const res = await addLike({ article_id: articleInfo.value.id, type: 1, user_id: userId });
+    if (res.code === 200) {
       articleInfo.value.thumbs_up_times++;
       isLike.value = true;
       likePending.value = false;
-      ElNotification({ offset: 60, title: "提示", message: h("div", { style: "color: #7ec050; font-weight: 600;" }, "点赞成功，谢谢支持") });
+      ElNotification({
+        offset: 60,
+        title: "提示",
+        message: h(
+          "div", { style: "color: #7ec050; font-weight: 600;" }, "点赞成功，谢谢支持"
+          )
+        });
     }
   }
 };
 
 const getArticleDetails = async (id: string | number): Promise<void> => {
-  const res = await getArticleById({id});
-  if (res.code === 0) {
+  const res = await getArticleById(id);
+  if (res.code === 200) {
     mdState.text = res.result.article_content;
     articleInfo.value = res.result;
-    const LRes = await getIsLikeByIdOrIpAndType({ for_id: articleInfo.value.id, type: 1, user_id: getUserInfo.value.id });
-    if (LRes.code === 0) {
+    const LRes = await getIsLikeByIdOrIpAndType({ article_id: articleInfo.value.id, type: 1, user_id: getUserInfo.value.id });
+    if (LRes.code === 200) {
       isLike.value = LRes.result;
     }
   }
@@ -120,7 +144,7 @@ const addReadingDuration = async (id: string | number): Promise<void> => {
 
 const getRecommendArticle = async (id: string | number): Promise<void> => {
   const res = await getRecommendArticleById({id});
-  if (res.code === 0) {
+  if (res.code === 200) {
     const { previous, next, recommend } = res.result;
     recommendList.value = recommend;
     previousArticle.value = previous;
@@ -170,6 +194,7 @@ onBeforeUnmount(() => {
     addReadingDuration(lastArticleId);
   }
 });
+
 </script>
 
 <template>

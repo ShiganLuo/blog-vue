@@ -46,7 +46,25 @@ export const getArticleByContent = (data?: object) => {
 }
 
 
-export const getArticleById = (data?: object) => {
+export const getArticleById = (id?: string | number) => {
+  if (id == null) {
+    throw new Error('getArticleById: id is required')
+  }
+  return fullRequest({
+    method:  'get',
+    url: `/api/front/articles/getArticleById/${id}`,
+  })
+}
+
+export const getArticleListByTagId = (data?: object) => {
+  return fullRequest({
+    method:  'post',
+    url: '',
+    data: data
+  })
+}
+
+export const getArticleListByCategoryId = (data?: object) => {
   return fullRequest({
     method:  'post',
     url: '',

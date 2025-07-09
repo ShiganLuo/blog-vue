@@ -36,6 +36,14 @@ const routes: RouteRecordRaw[] = [
         },
         component: () => import("@/views/article/article.vue"),
       },
+            {
+        path: "/articleList",
+        name: "ArticleList",
+        meta: {
+          name: "文章列表",
+        },
+        component: () => import("@/views/article/article-list.vue"),
+      },
     ]
   }
 
