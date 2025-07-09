@@ -187,12 +187,12 @@ watch(
           />
           <span v-else class="meta-value">{{ numberFormate(article.view_times) }}</span>
         </span>
-        <span class="meta-separator"></span>
+        <!-- <span class="meta-separator"></span>
         <span class="to_pointer">
           <i class="iconfont icon-speechbubble"></i>
           <span class="meta-label">阅读时长</span>
           <span class="meta-value">{{ readingDuration(article.reading_duration) }}</span>
-        </span>
+        </span> -->
       </div>
       <div class="toggle-theme">
         <el-dropdown class="theme-card-dropdown">

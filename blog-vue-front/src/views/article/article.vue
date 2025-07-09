@@ -135,12 +135,12 @@ const getArticleDetails = async (id: string | number): Promise<void> => {
   }
 };
 
-const addReadingDuration = async (id: string | number): Promise<void> => {
-  if (!setUpTimes) return;
-  const now = new Date();
-  const duration = now.getTime() - setUpTimes.getTime();
-  await readingDuration({id, duration});
-};
+// const addReadingDuration = async (id: string | number): Promise<void> => {
+//   if (!setUpTimes) return;
+//   const now = new Date();
+//   const duration = now.getTime() - setUpTimes.getTime();
+//   await readingDuration({id, duration});
+// };
 
 const getRecommendArticle = async (id: string | number): Promise<void> => {
   const res = await getRecommendArticleById({id});
@@ -189,11 +189,11 @@ watch(
 );
 
 
-onBeforeUnmount(() => {
-  if (setUpTimes && lastArticleId) {
-    addReadingDuration(lastArticleId);
-  }
-});
+// onBeforeUnmount(() => {
+//   if (setUpTimes && lastArticleId) {
+//     addReadingDuration(lastArticleId);
+//   }
+// });
 
 </script>
 
