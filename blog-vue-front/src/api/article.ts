@@ -72,11 +72,10 @@ export const getArticleListByCategoryId = (data?: object) => {
   })
 }
 
-export const getRecommendArticleById = (data?: object) => {
+export const getRecommendArticleById = (id?: string | number) => {
   return fullRequest({
-    method:  'post',
-    url: '',
-    data: data
+    method:  'get',
+    url: `/api/front/articles/getRecommendArticleById/${id}`,
   })
 }
 
@@ -93,7 +92,7 @@ export const readingDuration = (data?: object) => {
 export const addLike = (data?: object) => {
   return fullRequest({
     method:  'post',
-    url: '',
+    url: '/api/front/likes/addLike',
     data: data
   })
 }
@@ -101,7 +100,7 @@ export const addLike = (data?: object) => {
 export const cancelLike = (data?: object) => {
   return fullRequest({
     method:  'post',
-    url: '',
+    url: '/api/front/likes/deleteLike',
     data: data
   })
 }
@@ -109,9 +108,17 @@ export const cancelLike = (data?: object) => {
 export const getIsLikeByIdOrIpAndType = (data?: object) => {
   return fullRequest({
     method:  'post',
-    url: '',
+    url: `/api/front/likes/getIsLikeByArticleAndUserId`,
     data: data
   })
 }
+
+export const getLikesById = (id?: string | number) => {
+  return fullRequest({
+    method:  'get',
+    url: `/api/front/articles/getLikesById/${id}`,
+  })
+}
+
 
 

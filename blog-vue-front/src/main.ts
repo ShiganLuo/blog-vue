@@ -12,10 +12,12 @@ import "@/assets/css/iconFont/iconfont.css";
 
 // svg
 import "virtual:svg-icons-register";
+
 // 指令
 import vCopy from "./directives/copy";
 import image from "./directives/imageLoading";
 const app = createApp(App)
+
 app.directive("copy", vCopy);
 app.directive("image", image);
 app.use(createPinia())

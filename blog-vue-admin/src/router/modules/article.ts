@@ -4,7 +4,7 @@ export default {
   component: () => import("@/views/article/index.vue"),
   redirect: "/article/article-manage",
   meta: {
-    icon: "ep:user-filled",
+    icon: "ep:document",
     title: "文章管理",
     rank: 2
   },

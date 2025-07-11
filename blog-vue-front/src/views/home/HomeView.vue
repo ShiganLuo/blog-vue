@@ -128,7 +128,6 @@ const getAllTags = async (): Promise<void> => {
   } else {
     console.warn('返回数据不符合预期:', res);
   }
-  console.log(tags.value)
 };
 
 // 计算网站运行天数

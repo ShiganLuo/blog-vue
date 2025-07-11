@@ -9,7 +9,7 @@ import { MdPreview, MdCatalog } from "md-editor-v3";
 import "md-editor-v3/lib/style.css";
 
 import { getArticleById, getRecommendArticleById, readingDuration } from "@/api/article";
-import { addLike, cancelLike, getIsLikeByIdOrIpAndType } from "@/api/article";
+import { addLike, cancelLike, getIsLikeByIdOrIpAndType } from "@/api/like";
 
 import Comment from "@/components/Comment/index.vue";
 import Tooltip from "@/components/ToolTip/index.vue";
@@ -93,7 +93,7 @@ const like = async (): Promise<void> => {
   const userId = getUserInfo.value.id;
   // 取消点赞
   if (isLike.value) {
-    const res = await cancelLike({ article_id: articleInfo.value.id, type: 1, user_id: userId });
+    const res = await cancelLike({ article_id: articleInfo.value.id, user_id: userId });
     if (res.code === 200) {
       articleInfo.value.thumbs_up_times--;
       isLike.value = false;
@@ -107,7 +107,7 @@ const like = async (): Promise<void> => {
         });
     }
   } else { // 点赞
-    const res = await addLike({ article_id: articleInfo.value.id, type: 1, user_id: userId });
+    const res = await addLike({ article_id: articleInfo.value.id, user_id: userId });
     if (res.code === 200) {
       articleInfo.value.thumbs_up_times++;
       isLike.value = true;
@@ -128,7 +128,7 @@ const getArticleDetails = async (id: string | number): Promise<void> => {
   if (res.code === 200) {
     mdState.text = res.result.article_content;
     articleInfo.value = res.result;
-    const LRes = await getIsLikeByIdOrIpAndType({ article_id: articleInfo.value.id, type: 1, user_id: getUserInfo.value.id });
+    const LRes = await getIsLikeByIdOrIpAndType({ article_id: articleInfo.value.id, user_id: getUserInfo.value.id });
     if (LRes.code === 200) {
       isLike.value = LRes.result;
     }
@@ -143,7 +143,7 @@ const getArticleDetails = async (id: string | number): Promise<void> => {
 // };
 
 const getRecommendArticle = async (id: string | number): Promise<void> => {
-  const res = await getRecommendArticleById({id});
+  const res = await getRecommendArticleById(id);
   if (res.code === 200) {
     const { previous, next, recommend } = res.result;
     recommendList.value = recommend;
@@ -182,7 +182,7 @@ watch(
     if (route.path === "/article" && typeof newId === "string") {
       setUpTimes = new Date();
       lastArticleId = newId;
-      init(newId); // ✅ 类型安全
+      init(newId);
     }
   },
   { immediate: true }
