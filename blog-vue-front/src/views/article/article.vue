@@ -217,7 +217,7 @@ watch(
             <div class="article-info-inner">
               <div>
                 <span>文章作者：</span>
-                <a class="to_pointer" href="https://gitee.com/mrzym">{{
+                <a class="to_pointer" href="">{{
                   articleInfo.authorName
                 }}</a>
               </div>
@@ -237,7 +237,7 @@ watch(
                 <span>本文链接：</span>
                 <a class="to_pointer" v-copy="currentUrl">{{ currentUrl }}</a>
               </div>
-              <p>声明: 此文章版权归 Mr M 所有，如有转载，请注明来自原作者</p>
+              <p>声明: 此文章版权归 Sg Luo 所有，如有转载，请注明来自原作者</p>
             </div>
           </div>
           <div :class="['like', isLike ? 'is-like' : '']" @click="like">

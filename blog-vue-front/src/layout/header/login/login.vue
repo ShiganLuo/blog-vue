@@ -74,7 +74,7 @@ const registerRules: FormRules = {
 
 const welcome = (id: number, nick_name: string) => {
   let msg = getWelcomeSay(nick_name);
-  if (id === 3) msg = "小婷光临，真是三生有幸";
+  // if (id === 3) msg = "某某光临，真是三生有幸";
   ElNotification({
     offset: 60,
     title: "欢迎～",
@@ -100,7 +100,9 @@ const userRegister = async () => {
   });
 };
 
+// 用户登录
 const userLogin = async (type?: "register") => {
+  // 如果是用户注册以后进行登录得，参数需要整合一下
   if (type === "register") {
     const loginForm = {
       username: registerForm.username,
@@ -117,23 +119,20 @@ const userLogin = async (type?: "register") => {
 const onLogin = async (form: LoginForm, type: "login" | "register" = "login") => {
   const res = await reqLogin(form);
   if (res?.code === 200) {
-    await userStore.setToken(res.result.token);
+    await userStore.setToken(res.result.accessToken);
+    // 用户注册后登录
     if (type === "register" || isRemember.value) {
       _setLocalItem("loginForm", _encrypt(form));
     } else {
       _removeLocalItem("loginForm");
     }
+    await userStore.setUserInfo(res.result);
+    Object.assign(loginForm, primaryLoginForm);
+    Object.assign(registerForm, primaryRegisterForm);
+    handleClose();
+    await welcome(res.result.id, res.result.nickname);
     ElNotification({ offset: 60, title: "提示", message: h("div", { style: "color: #7ec050; font-weight: 600;" }, type === "login" ? "登录成功" : "自动登录成功") });
-    const userRes = await getUserInfoById(res.result.id);
-    if (userRes.code === 0) {
-      await userStore.setUserInfo(userRes.result);
-      Object.assign(loginForm, primaryLoginForm);
-      Object.assign(registerForm, primaryRegisterForm);
-      handleClose();
-      await welcome(userRes.result.id, userRes.result.nick_name);
-    } else {
-      ElNotification({ offset: 60, title: "错误提示", message: h("div", { style: "color: #f56c6c; font-weight: 600;" }, userRes.message) });
-    }
+
   } else {
     ElNotification({ offset: 60, title: "错误提示", message: h("div", { style: "color: #f56c6c; font-weight: 600;" }, res.message) });
   }
@@ -282,6 +281,11 @@ watch(
     width: 100%;
   }
 }
+
+:deep(.el-overlay){
+  z-index: 10002 !important;
+}
+
 .apply-button {
   width: 100%;
   text-align: center;

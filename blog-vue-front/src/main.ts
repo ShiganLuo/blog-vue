@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import App from './App.vue'
 import router from './router'
 import ElementPlus from 'element-plus'
@@ -17,10 +18,13 @@ import "virtual:svg-icons-register";
 import vCopy from "./directives/copy";
 import image from "./directives/imageLoading";
 const app = createApp(App)
+const pinia = createPinia()
+pinia.use(piniaPluginPersistedstate)
 
 app.directive("copy", vCopy);
 app.directive("image", image);
-app.use(createPinia())
+
+app.use(pinia)
 app.use(router)
 // 全局注册不需要再组件内重复引入
 app.use(ElementPlus)

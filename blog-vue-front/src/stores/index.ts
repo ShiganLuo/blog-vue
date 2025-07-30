@@ -116,6 +116,7 @@ export const useStaticData = defineStore(
     };
   },
 );
+
 export const useUserStore = defineStore('user', () => {
   // State，响应式变量
   const blogAvatar = ref<string>('')
@@ -183,4 +184,9 @@ export const useUserStore = defineStore('user', () => {
     setShowLogin,
     setBlogAvatar
   }
-})
+},
+  {
+    persist: true,
+  },
+)
+

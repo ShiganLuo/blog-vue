@@ -7,7 +7,7 @@ import Loading from "@/components/Loading/index.vue";
 import { useUserStore } from "@/stores/index";
 import { ElMessageBox, ElNotification } from "element-plus";
 import { getCurrentType } from "@/utils/tool";
-import { addLike, cancelLike } from "@/api/article";
+import { addLike, cancelLike } from "@/api/like";
 import { containHTML } from "@/utils/tool";
 import type { CommentType, CommentItem, CommentParams } from "./comment";
 

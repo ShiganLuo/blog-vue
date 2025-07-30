@@ -65,8 +65,6 @@ const publish = async (): Promise<void> => {
 
   const data: any = {
     from_id: userStore.getUserInfo.id,
-    from_avatar: userStore.getUserInfo.avatar,
-    from_name: userStore.getUserInfo.nick_name,
     content: commentText.value,
     for_id: props.id,
     type: 0,
@@ -86,7 +84,7 @@ const publish = async (): Promise<void> => {
   }
 
   const res: any = await addComment(data);
-  if (res.code === 0) {
+  if (res.code === 200) {
     commentText.value = "";
     ElNotification({
       offset: 60,
@@ -120,7 +118,7 @@ const getCommentTotal = async (): Promise<void> => {
     type: getCurrentType(props.type),
     for_id: props.id,
   });
-  if (res && res.code === 0) {
+  if (res && res.code === 200) {
     getTotal(Number(res.result));
   } else {
     ElNotification({

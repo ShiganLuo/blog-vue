@@ -36,7 +36,7 @@ const routes: RouteRecordRaw[] = [
         },
         component: () => import("@/views/article/article.vue"),
       },
-            {
+      {
         path: "/articleList",
         name: "ArticleList",
         meta: {

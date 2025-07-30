@@ -3,7 +3,7 @@ import { fullRequest, request } from "./http/index";
 export const addComment = (data?: object) => {
   return fullRequest({
     method:  'post',
-    url: '',
+    url: '/api/front/comments/addComment',
     data: data
   })
 }
@@ -11,7 +11,7 @@ export const addComment = (data?: object) => {
 export const frontGetCommentTotal = (data?: object) => {
   return fullRequest({
     method:  'post',
-    url: '',
+    url: '/api/front/comments/getCommentTotal',
     data: data
   })
 }

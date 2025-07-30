@@ -220,6 +220,10 @@ div:focus {
     overflow: auto !important;
     border-radius: 8px !important;
   }
+  // 防止md-editor-v3代码框z-index:10000遮盖登录下拉框
+  .el-overlay {
+  z-index: 10009 !important;
+  }
   .mobile-affix {
     display: none;
   }

@@ -178,7 +178,7 @@ export const _removeLocalItem = function (key: string | null | undefined): void 
  */
 export function getWelcomeSay(nickName?: string): string {
   if (!nickName) {
-    return "欢迎来到小张的个人博客";
+    return "欢迎来到时敢的个人博客";
   }
 
   const now = new Date().getHours();

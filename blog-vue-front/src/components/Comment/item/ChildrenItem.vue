@@ -7,7 +7,7 @@ import Pagination from '@/components/Pagination/pagination.vue';
 import CommentInput from './CommentInput.vue';
 import { useUserStore } from '@/stores/index';
 import Loading from '@/components/Loading/index.vue';
-import { addLike, cancelLike } from '@/api/article';
+import { addLike, cancelLike } from '@/api/like';
 import { getCurrentType } from '@/utils/tool';
 
 import type { CommentItem, CommentTo, CommentParams } from './comment';
