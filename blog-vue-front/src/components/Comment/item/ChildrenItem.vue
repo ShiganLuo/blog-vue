@@ -75,7 +75,7 @@ const getComment = async (type?: string) => {
   }
   params.type = String(getCurrentType(props.type));
   const res = await frontGetChildrenComment(params);
-  if (res?.code === 0) {
+  if (res?.code === 200) {
     const { list, total } = res.result;
     commentList.value = list;
     commentTotal.value = Number(total);
@@ -101,7 +101,7 @@ const like = async (item: CommentItem, index: number) => {
     }
   } else {
     res = await addLike({ for_id: item.id, type: 4, user_id: userStore.getUserInfo.id });
-    if (res?.code === 0) {
+    if (res?.code === 200) {
       item.is_like = true;
       item.thumbs_up++;
     }
@@ -134,8 +134,8 @@ const deleteOwnComment = (id: number) => {
     confirmButtonText: '确认',
     cancelButtonText: '取消',
   }).then(async () => {
-    const res = await deleteComment({id:id, parent_id:props.parent_id});
-    if (res?.code === 0) {
+    const res = await deleteComment(id);
+    if (res?.code === 200) {
       ElNotification({
         offset: 60,
         title: '提示',

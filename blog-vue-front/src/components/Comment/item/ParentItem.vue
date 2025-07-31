@@ -46,7 +46,7 @@ const getComment = async (type?: string) => {
   if (type === "clear") params.current = 1;
   params.type = String(getCurrentType(props.type));
   const res = await frontGetParentComment(params);
-  if (res && res.code === 0) {
+  if (res && res.code === 200) {
     const { list, total } = res.result;
     list.forEach((l: any) => (l.showApplyInput = false));
     commentList.value = params.current === 1 ? list : commentList.value.concat(list);
@@ -110,8 +110,8 @@ const deleteOwnComment = (id: number) => {
     confirmButtonText: "确认",
     cancelButtonText: "取消",
   }).then(async () => {
-    const res = await deleteComment({id});
-    if (res?.code === 0) {
+    const res = await deleteComment(id);
+    if (res?.code === 200) {
       ElNotification({ offset: 60, title: "提示", message: h("div", { style: "color: #7ec050; font-weight: 600;" }, "删除成功") });
       getComment("clear");
       emits("refresh");

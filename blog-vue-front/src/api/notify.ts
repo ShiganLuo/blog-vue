@@ -3,7 +3,7 @@ import { fullRequest  } from "./http";
 export const getNotifylist = (data?: object) => {
     return fullRequest({
         method: 'post',
-        url: ' ',
+        url: '/api/front/comments/getNotifyPage',
         data:data
     })
 }
