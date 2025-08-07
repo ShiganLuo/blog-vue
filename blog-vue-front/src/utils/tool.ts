@@ -237,18 +237,4 @@ export function getCurrentIndex(): number {
   return 0;
 }
 
-// 获取评论类型编码
-export function getCurrentType(type: string): number {
-  switch (type) {
-    case "article":
-      return 1;
-    case "talk":
-      return 2;
-    case "message":
-      return 3;
-    case "comment":
-      return 4;
-    default:
-      return 0;
-  }
-}
+

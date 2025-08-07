@@ -16,6 +16,7 @@ import Tooltip from "@/components/ToolTip/index.vue";
 import PageHeader from "@/components/PageHeader/index.vue";
 import GsapCount from "@/components/GsapCount/index.vue";
 
+
 interface ArticleInfo {
   id: number;
   authorName: string;
@@ -93,7 +94,7 @@ const like = async (): Promise<void> => {
   const userId = getUserInfo.value.id;
   // 取消点赞
   if (isLike.value) {
-    const res = await cancelLike({ article_id: articleInfo.value.id, user_id: userId });
+    const res = await cancelLike({ for_id: articleInfo.value.id,type: "post", user_id: userId });
     if (res.code === 200) {
       articleInfo.value.thumbs_up_times--;
       isLike.value = false;
@@ -107,7 +108,7 @@ const like = async (): Promise<void> => {
         });
     }
   } else { // 点赞
-    const res = await addLike({ article_id: articleInfo.value.id, user_id: userId });
+    const res = await addLike({ for_id: articleInfo.value.id,type: "post", user_id: userId });
     if (res.code === 200) {
       articleInfo.value.thumbs_up_times++;
       isLike.value = true;
@@ -128,7 +129,7 @@ const getArticleDetails = async (id: string | number): Promise<void> => {
   if (res.code === 200) {
     mdState.text = res.result.article_content;
     articleInfo.value = res.result;
-    const LRes = await getIsLikeByIdOrIpAndType({ article_id: articleInfo.value.id, user_id: getUserInfo.value.id });
+    const LRes = await getIsLikeByIdOrIpAndType({ for_id: articleInfo.value.id, type: "post", user_id: getUserInfo.value.id });
     if (LRes.code === 200) {
       isLike.value = LRes.result;
     }
@@ -332,7 +333,7 @@ watch(
             <Comment
               ref="commentRef"
               class="w-[100%]"
-              type="article"
+              type="comment"
               :id="Number(route.query.id ?? 0)"
               :author-id="articleInfo.author_id"
             />

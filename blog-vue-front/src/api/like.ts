@@ -19,7 +19,7 @@ export const cancelLike = (data?: object) => {
 export const getIsLikeByIdOrIpAndType = (data?: object) => {
   return fullRequest({
     method:  'post',
-    url: `/api/front/likes/getIsLikeByArticleAndUserId`,
+    url: '/api/front/likes/getIsLike',
     data: data
   })
 }

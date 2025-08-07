@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { reactive, ref, watch, h } from 'vue';
-import { frontGetChildrenComment, applyComment, deleteComment } from '@/api/comment';
+import { frontGetChildrenComment, addComment, deleteComment } from '@/api/comment';
 import { ElNotification, ElMessageBox } from 'element-plus';
 
 import Pagination from '@/components/Pagination/pagination.vue';
@@ -8,7 +8,6 @@ import CommentInput from './CommentInput.vue';
 import { useUserStore } from '@/stores/index';
 import Loading from '@/components/Loading/index.vue';
 import { addLike, cancelLike } from '@/api/like';
-import { getCurrentType } from '@/utils/tool';
 
 import type { CommentItem, CommentTo, CommentParams } from './comment';
 
@@ -33,10 +32,8 @@ const params = reactive<CommentParams>({
   size: 5,
   type: '',
   for_id: 0,
-  parent_id: 0,
   order: '',
-  loading: false,
-  user_id: userStore.getUserInfo.id,
+  loading: false
 });
 
 const commentList = ref<CommentItem[]>([]);
@@ -73,7 +70,7 @@ const getComment = async (type?: string) => {
   if (type === 'clear') {
     params.current = 1;
   }
-  params.type = String(getCurrentType(props.type));
+  params.type = props.type;
   const res = await frontGetChildrenComment(params);
   if (res?.code === 200) {
     const { list, total } = res.result;
@@ -94,13 +91,13 @@ const like = async (item: CommentItem, index: number) => {
   likePending.value = true;
   let res;
   if (item.is_like) {
-    res = await cancelLike({ for_id: item.id, type: 4, user_id: userStore.getUserInfo.id });
-    if (res?.code === 0) {
+    res = await cancelLike({ for_id: item.id, type: "comment", user_id: userStore.getUserInfo.id });
+    if (res?.code === 200) {
       item.is_like = false;
       item.thumbs_up--;
     }
   } else {
-    res = await addLike({ for_id: item.id, type: 4, user_id: userStore.getUserInfo.id });
+    res = await addLike({ for_id: item.id, type: "comment", user_id: userStore.getUserInfo.id });
     if (res?.code === 200) {
       item.is_like = true;
       item.thumbs_up++;
@@ -109,6 +106,7 @@ const like = async (item: CommentItem, index: number) => {
   likePending.value = false;
 };
 
+// 支持对评论进行回复
 const apply = (item: CommentItem, type: 'parent' | 'children', index = 0) => {
   if (type === 'parent') {
     isParentApply.value = true;
@@ -153,11 +151,13 @@ const deleteOwnComment = (id: number) => {
   });
 };
 
+// 控制页码
 const pagination = (page: { current: number }) => {
   params.current = page.current;
   getComment();
 };
 
+// 如果是对父评论的回复，交由父组件处理，否则自己处理
 const publish = async () => {
   if (!userStore.getUserInfo.id) {
     ElNotification({
@@ -177,20 +177,14 @@ const publish = async () => {
 
   const data = {
     from_id: userStore.getUserInfo.id,
-    from_avatar: userStore.getUserInfo.avatar,
-    from_name: userStore.getUserInfo.nick_name,
-    to_id: commentTo.from_id,
-    to_avatar: commentTo.from_avatar,
-    to_name: commentTo.from_name,
     content: commentText.value,
-    parent_id: commentTo.parent_id,
     for_id: props.id,
-    type: getCurrentType(props.type),
+    type: props.type,
     author_id: props.authorId,
   };
 
-  const res = await applyComment(data);
-  if (res?.code === 0) {
+  const res = await addComment(data);
+  if (res?.code === 200) {
     commentText.value = '';
     ElNotification({
       offset: 60,
@@ -210,6 +204,7 @@ const publish = async () => {
   }
 };
 
+// 当 parent_id 变化时，触发对当前评论的子评论拉取
 watch(
   () => props.parent_id,
   () => {

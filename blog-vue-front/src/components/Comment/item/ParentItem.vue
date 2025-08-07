@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { reactive, ref, watch, h } from "vue";
-import { frontGetParentComment, applyComment, deleteComment } from "@/api/comment";
+import { frontGetParentComment, addComment, deleteComment } from "@/api/comment";
 import TextOverflow from "@/components/TextOverflow/index.vue";
 import ChildrenItem from "./ChildrenItem.vue";
 import Loading from "@/components/Loading/index.vue";
 import { useUserStore } from "@/stores/index";
 import { ElMessageBox, ElNotification } from "element-plus";
-import { getCurrentType } from "@/utils/tool";
 import { addLike, cancelLike } from "@/api/like";
 import { containHTML } from "@/utils/tool";
 import type { CommentType, CommentItem, CommentParams } from "./comment";
@@ -44,7 +43,7 @@ const params = reactive<CommentParams>({
 const getComment = async (type?: string) => {
   params.loading = true;
   if (type === "clear") params.current = 1;
-  params.type = String(getCurrentType(props.type));
+  params.type = props.type;
   const res = await frontGetParentComment(params);
   if (res && res.code === 200) {
     const { list, total } = res.result;
@@ -66,17 +65,17 @@ const like = async (item: CommentItem, index: number) => {
   if (likePending.value) return;
   likePending.value = true;
   let res;
-  const payload = { for_id: item.id, type: 4, user_id: userStore.getUserInfo.id };
+  const payload = { for_id: item.id, type: "comment", user_id: userStore.getUserInfo.id };
   if (item.is_like) {
     res = await cancelLike(payload);
-    if (res?.code === 0) {
+    if (res?.code === 200) {
       commentList.value[index].is_like = false;
       commentList.value[index].thumbs_up--;
       ElNotification({ offset: 60, title: "提示", message: h("div", { style: "color: #7ec050; font-weight: 600;" }, "已取消点赞") });
     }
   } else {
     res = await addLike(payload);
-    if (res?.code === 0) {
+    if (res?.code === 200) {
       commentList.value[index].is_like = true;
       commentList.value[index].thumbs_up++;
       ElNotification({ offset: 60, title: "提示", message: h("div", { style: "color: #7ec050; font-weight: 600;" }, "点赞成功") });
@@ -124,19 +123,13 @@ const deleteOwnComment = (id: number) => {
 const publish = async (item: any) => {
   const data = {
     from_id: userStore.getUserInfo.id,
-    from_avatar: userStore.getUserInfo.avatar,
-    from_name: userStore.getUserInfo.nick_name,
-    to_id: item.from_id,
-    to_avatar: item.from_avatar,
-    to_name: item.from_name,
     content: item.content,
-    parent_id: item.parent_id,
     for_id: props.id,
     author_id: props.authorId,
-    type: getCurrentType(props.type),
+    type: props.type,
   };
-  const res = await applyComment(data);
-  if (res.code === 0) {
+  const res = await addComment(data);
+  if (res.code === 200) {
     ElNotification({ offset: 60, title: "提示", message: h("div", { style: "color: #7ec050; font-weight: 600;" }, "评论成功") });
     params.current = 1;
     childrenRef.value[currentApplyIndex.value]?.getComment("clear");
@@ -152,7 +145,7 @@ watch(
   () => {
     Object.assign(params, {
       for_id: props.id,
-      type: getCurrentType(props.type),
+      type: props.type,
       order: props.active,
     });
     getComment();

@@ -2,7 +2,6 @@
 import { ref, onMounted, h, watch } from "vue";
 import { useUserStore } from "@/stores/index";
 import { addComment, frontGetCommentTotal } from "@/api/comment";
-import { getCurrentType } from "@/utils/tool";
 import ParentItem from "./item/ParentItem.vue";
 import CommentInput from "./item/CommentInput.vue";
 import { ElNotification } from "element-plus";
@@ -15,7 +14,7 @@ const emit = defineEmits<{
 
 // 定义 props 类型
 interface Props {
-  type: "article" | "talk" | "message";
+  type: "article" | "comment";
   id: number;
   authorId: number;
   expand?: boolean;
@@ -67,21 +66,9 @@ const publish = async (): Promise<void> => {
     from_id: userStore.getUserInfo.id,
     content: commentText.value,
     for_id: props.id,
-    type: 0,
+    type: props.type,
     author_id: props.authorId,
   };
-
-  switch (props.type) {
-    case "article":
-      data.type = 1;
-      break;
-    case "talk":
-      data.type = 2;
-      break;
-    case "message":
-      data.type = 3;
-      break;
-  }
 
   const res: any = await addComment(data);
   if (res.code === 200) {
@@ -115,7 +102,7 @@ const getTotal = (val: number): void => {
 // 获取评论总数（后端接口）
 const getCommentTotal = async (): Promise<void> => {
   const res: any = await frontGetCommentTotal({
-    type: getCurrentType(props.type),
+    type: props.type,
     for_id: props.id,
   });
   if (res && res.code === 200) {
