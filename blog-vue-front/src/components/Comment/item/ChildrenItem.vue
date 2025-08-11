@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { reactive, ref, watch, h } from 'vue';
-import { frontGetChildrenComment, addComment, deleteComment } from '@/api/comment';
+import { frontGetComment, addComment, deleteComment } from '@/api/comment';
 import { ElNotification, ElMessageBox } from 'element-plus';
 
 import Pagination from '@/components/Pagination/pagination.vue';
@@ -30,7 +30,7 @@ const props = defineProps<{
 const params = reactive<CommentParams>({
   current: 1,
   size: 5,
-  type: '',
+  type: 'comment', // 子评论类型为comment
   for_id: 0,
   order: '',
   loading: false
@@ -70,8 +70,8 @@ const getComment = async (type?: string) => {
   if (type === 'clear') {
     params.current = 1;
   }
-  params.type = props.type;
-  const res = await frontGetChildrenComment(params);
+  // params.type = props.type;
+  const res = await frontGetComment(params);
   if (res?.code === 200) {
     const { list, total } = res.result;
     commentList.value = list;
@@ -210,7 +210,7 @@ watch(
   () => {
     Object.assign(params, {
       for_id: props.id,
-      type: props.type,
+      type: 'comment',
       parent_id: props.parent_id,
     });
     getComment();

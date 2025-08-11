@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { reactive, ref, watch, h } from "vue";
-import { frontGetParentComment, addComment, deleteComment } from "@/api/comment";
+import { frontGetComment, addComment, deleteComment } from "@/api/comment";
 import TextOverflow from "@/components/TextOverflow/index.vue";
 import ChildrenItem from "./ChildrenItem.vue";
 import Loading from "@/components/Loading/index.vue";
@@ -33,7 +33,7 @@ const currentApplyIndex = ref(0);
 const params = reactive<CommentParams>({
   current: 1,
   size: 5,
-  type: '',
+  type: 'post', // 一级评论为post类型
   for_id: props.id,
   order: props.active,
   user_id: userStore.getUserInfo.id,
@@ -43,8 +43,9 @@ const params = reactive<CommentParams>({
 const getComment = async (type?: string) => {
   params.loading = true;
   if (type === "clear") params.current = 1;
-  params.type = props.type;
-  const res = await frontGetParentComment(params);
+  // params.type = props.type;
+  const res = await frontGetComment(params);
+  console.log(params)
   if (res && res.code === 200) {
     const { list, total } = res.result;
     list.forEach((l: any) => (l.showApplyInput = false));
@@ -126,7 +127,7 @@ const publish = async (item: any) => {
     content: item.content,
     for_id: props.id,
     author_id: props.authorId,
-    type: props.type,
+    type: 'post',
   };
   const res = await addComment(data);
   if (res.code === 200) {
@@ -145,7 +146,7 @@ watch(
   () => {
     Object.assign(params, {
       for_id: props.id,
-      type: props.type,
+      type: 'post',
       order: props.active,
     });
     getComment();
@@ -238,8 +239,8 @@ defineExpose({ getComment, closeComment });
               class="!mt-[1.5rem]"
               ref="childrenRef"
               :type="props.type"
-              :id="id"
-              :parent_id="comment.id"
+              :id="comment.id"
+              :parent_id="props.id"
               :parentShowApply="comment.showApplyInput"
               :author-id="authorId"
               @parentApply="publish"

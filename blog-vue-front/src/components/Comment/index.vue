@@ -14,7 +14,7 @@ const emit = defineEmits<{
 
 // 定义 props 类型
 interface Props {
-  type: "article" | "comment";
+  type: "post" | "comment";
   id: number;
   authorId: number;
   expand?: boolean;

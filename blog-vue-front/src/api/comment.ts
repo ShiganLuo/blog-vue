@@ -16,7 +16,7 @@ export const frontGetCommentTotal = (data?: object) => {
   })
 }
 
-export const frontGetParentComment = (data?: object) => {
+export const frontGetComment = (data?: object) => {
   return fullRequest({
     method:  'post',
     url: '/api/front/comments/getCommentPage',
@@ -36,14 +36,6 @@ export const deleteComment = (id?: number | string) => {
   return fullRequest({
     method:  'get',
     url: `/api/front/comments/deleteCommentById/${id}`,
-  })
-}
-
-export const frontGetChildrenComment = (data?: object) => {
-  return fullRequest({
-    method:  'post',
-    url: '',
-    data: data
   })
 }
 
