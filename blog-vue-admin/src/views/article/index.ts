@@ -17,7 +17,7 @@ import { mdImgUpload } from "@/api/site";
 import { tagV, coverV } from "./validator";
 import { ElLoading } from "element-plus";
 import { useNav } from "@/layout/hooks/useNav";
-
+// 待修改，区分不同文章类型
 export function useArticle() {
   const { username } = useNav();
   const dialogVisible = ref(false);
@@ -50,6 +50,7 @@ export function useArticle() {
     summary: string;
     content: string;
     author: string;
+    origin_url?: string;
   }
   interface articleUpdate {
     id: number;
@@ -274,7 +275,8 @@ export function useArticle() {
             title: finalArticle?.title,
             summary: finalArticle?.article_description,
             content: finalArticle?.content,
-            author: finalArticle?.author_name
+            author: finalArticle?.author_name,
+            origin_url: finalArticle?.origin_url
           };
           res = await addArticle(articleData);
           if (res.code == 200) {

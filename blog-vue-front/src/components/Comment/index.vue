@@ -14,9 +14,9 @@ const emit = defineEmits<{
 
 // 定义 props 类型
 interface Props {
-  type: "post" | "comment";
-  id: number;
-  authorId: number;
+  type: "post" | "comment" | "talk";
+  id: number | string;
+  authorId: number | string;
   expand?: boolean;
   isShowToggle?: boolean;
 }
@@ -94,7 +94,7 @@ const publish = async (): Promise<void> => {
   }
 };
 
-// 获取评论条数
+// 获取评论条数,不为0才展示comment-header
 const getTotal = (val: number): void => {
   total.value = val;
 };
@@ -102,7 +102,7 @@ const getTotal = (val: number): void => {
 // 获取评论总数（后端接口）
 const getCommentTotal = async (): Promise<void> => {
   const res: any = await frontGetCommentTotal({
-    type: props.type,
+    type: "post",
     for_id: props.id,
   });
   if (res && res.code === 200) {
@@ -179,7 +179,7 @@ defineExpose({
       <div id="commentInput" class="!mt-[1rem] w-[100%] flex justify-start items-start">
         <div class="avatar-box">
           <el-avatar class="avatar" :src="userStore.getUserInfo.avatar" @click="toLogin">{{
-            userStore.getUserInfo.nick_name || "登录"
+            userStore.getUserInfo.username || "登录"
           }}</el-avatar>
         </div>
         <div class="!w-[100%] !ml-[10px]">

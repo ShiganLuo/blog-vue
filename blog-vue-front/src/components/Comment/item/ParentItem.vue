@@ -20,8 +20,8 @@ const emits = defineEmits<{
 const props = defineProps<{
   active: string;
   type: CommentType;
-  id: number;
-  authorId: number;
+  id: number | string;
+  authorId: number | string;
 }>();
 
 const childrenRef = ref<any[]>([]);
@@ -40,6 +40,7 @@ const params = reactive<CommentParams>({
   loading: false,
 });
 
+// 获取所有一级评论
 const getComment = async (type?: string) => {
   params.loading = true;
   if (type === "clear") params.current = 1;
@@ -62,6 +63,7 @@ const showMore = () => {
   getComment();
 };
 
+// 评论点赞
 const like = async (item: CommentItem, index: number) => {
   if (likePending.value) return;
   likePending.value = true;
@@ -105,7 +107,8 @@ const closeComment = () => {
   childrenRef.value.forEach((v) => v?.closeComment());
 };
 
-const deleteOwnComment = (id: number) => {
+// 删除评论
+const deleteOwnComment = (id: number | string) => {
   ElMessageBox.confirm("确认删除此条评论吗？子级评论也会被删除哦", "提示", {
     confirmButtonText: "确认",
     cancelButtonText: "取消",
@@ -121,6 +124,7 @@ const deleteOwnComment = (id: number) => {
   });
 };
 
+// 增加评论
 const publish = async (item: any) => {
   const data = {
     from_id: userStore.getUserInfo.id,

@@ -5,3 +5,11 @@ declare module 'md-editor-v3' {
   export const MdPreview: DefineComponent<any>
   export const MdCatalog: DefineComponent<any>
 }
+
+declare module '*.svg?component' {
+  import type { DefineComponent } from 'vue';
+  const component: DefineComponent<{}, {}, any>;
+  export default component;
+}
+
+declare module 'vue3-danmaku'

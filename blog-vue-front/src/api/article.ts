@@ -87,6 +87,14 @@ export const readingDuration = (data?: object) => {
   })
 }
 
+export const blogTimelineGetArticleList = (data?: object) => {
+  return fullRequest({
+    method:  'post',
+    url: '/api/front/articles/getTimeLineArticle',
+    data: data
+  })
+}
+
 
 
 

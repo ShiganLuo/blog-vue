@@ -72,3 +72,26 @@ export const reqRegister = (data?: object) => {
   });
 }
 
+export const imgUpload = (data?: object) => {
+  return fullRequest({
+    method: "post",
+    url: "",
+    data: data
+  });
+}
+
+export const updateUserInfo = (data?: object) => {
+  return fullRequest({
+    method: "post",
+    url: "",
+    data: data
+  });
+}
+
+export const updateUserPassword = (data?: object) => {
+  return fullRequest({
+    method: "post",
+    url: "",
+    data: data
+  });
+}

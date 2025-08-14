@@ -47,6 +47,9 @@ importers:
       vue-router:
         specifier: ^4.5.0
         version: 4.5.1(vue@3.5.18(typescript@5.8.3))
+      vue3-danmaku:
+        specifier: ^1.6.6
+        version: 1.6.6(vue@3.5.18(typescript@5.8.3))
     devDependencies:
       '@tsconfig/node22':
         specifier: ^22.0.1
@@ -3060,6 +3063,12 @@ packages:
     hasBin: true
     peerDependencies:
       typescript: '>=5.0.0'
+
+  vue3-danmaku@1.6.6:
+    resolution: {integrity: sha512-6igzSqFxxVzu0IIqQdRrRQHltQiRT8oOleCIoxBwsjCJBvAe4oKjUnNQxFxhwhp+HwXiaCdgK8V73iUUk920zA==}
+    engines: {node: '>=12.0.0'}
+    peerDependencies:
+      vue: ^3.0.0
 
   vue@3.5.18:
     resolution: {integrity: sha512-7W4Y4ZbMiQ3SEo+m9lnoNpV9xG7QVMLa+/0RFwwiAVkeYoyGXqWE85jabU4pllJNUzqfLShJ5YLptewhCWUgNA==}
@@ -6474,6 +6483,10 @@ snapshots:
       '@volar/typescript': 2.4.15
       '@vue/language-core': 2.2.12(typescript@5.8.3)
       typescript: 5.8.3
+
+  vue3-danmaku@1.6.6(vue@3.5.18(typescript@5.8.3)):
+    dependencies:
+      vue: 3.5.18(typescript@5.8.3)
 
   vue@3.5.18(typescript@5.8.3):
     dependencies:

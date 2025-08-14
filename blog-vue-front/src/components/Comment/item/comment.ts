@@ -1,8 +1,8 @@
-export type CommentType = "post" | "comment";
+export type CommentType = "post" | "comment" | "talk";
 
 export interface CommentItem {
-  id: number;
-  from_id: number;
+  id: number | string;
+  from_id: number | string;
   from_name: string;
   from_avatar: string;
   content: string;
@@ -18,10 +18,10 @@ export interface CommentParams {
   current: number;
   size: number;
   type?: string;
-  for_id: number;
+  for_id: number | string;
   order: string;
-  user_id?: number;
-  parent_id?: number;
+  user_id?: number | string;
+  parent_id?: number | string;
   loading: boolean;
 }
 

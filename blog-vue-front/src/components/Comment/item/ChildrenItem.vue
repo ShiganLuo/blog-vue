@@ -21,10 +21,10 @@ const emits = defineEmits<{
 
 const props = defineProps<{
   type: string;
-  parent_id: number;
-  id: number;
+  parent_id: number | string;
+  id: number | string;
   parentShowApply: boolean;
-  authorId: number;
+  authorId: number | string;
 }>();
 
 const params = reactive<CommentParams>({
@@ -127,7 +127,7 @@ const apply = (item: CommentItem, type: 'parent' | 'children', index = 0) => {
   showApplyInput.value = true;
 };
 
-const deleteOwnComment = (id: number) => {
+const deleteOwnComment = (id: number | string) => {
   ElMessageBox.confirm('确认删除此条评论吗', '提示', {
     confirmButtonText: '确认',
     cancelButtonText: '取消',

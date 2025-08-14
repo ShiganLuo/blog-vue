@@ -237,4 +237,34 @@ export function getCurrentIndex(): number {
   return 0;
 }
 
+/**
+ * 返回时间差（几秒/分钟/小时/天前）
+ * @param time 时间字符串，例如 "2025-08-14 12:00:00"
+ * @returns 返回字符串，如 "5秒", "10分钟", "3小时", "2天" 或 undefined
+ */
+export const returnTime = (time?: string): string | undefined => {
+  if (!time) return;
+
+  // 解决 iOS 系统上 new Date(time) 可能返回 NaN 的问题
+  const formattedTime = time.replace(/-/g, "/");
+  const times = new Date().getTime() - new Date(formattedTime).getTime();
+
+  let res: string;
+
+  if (times < 60_000) {
+    res = Math.trunc(times / 1000) + "秒";
+  } else if (times >= 60_000 && times < 3_600_000) {
+    res = Math.trunc(times / 60_000) + "分钟";
+  } else if (times >= 3_600_000 && times < 86_400_000) {
+    res = Math.trunc(times / 3_600_000) + "小时";
+  } else {
+    res = Math.trunc(times / 86_400_000) + "天";
+  }
+
+  return res;
+};
+
+export function filterMessage(text: string): string {
+  return text.replace(/&gt;/g, ">").replace(/&lt;/g, "<");
+}
 
