@@ -78,6 +78,14 @@ const routes: RouteRecordRaw[] = [
         ],
       },
       {
+        path: "/siteList",
+        name: "SiteList",
+        meta: {
+          name: "网站列表",
+        },
+        component: () => import("@/views/resources/site-list.vue"),
+      },
+      {
         path: "/category",
         name: "Category",
         meta: {

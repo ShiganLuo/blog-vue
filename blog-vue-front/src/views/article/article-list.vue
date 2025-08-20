@@ -8,6 +8,7 @@ import SkeletonItem from "@/components/SkeletonItem/skeleton-item.vue";
 import Tooltip from "@/components/ToolTip/index.vue";
 import Pagination from "@/components/Pagination/pagination.vue";
 import PageHeader from "@/components/PageHeader/index.vue";
+import SvgIcon from "@/components/SvgIcon/index.vue";
 
 // 接口返回类型定义
 interface Article {
@@ -69,7 +70,7 @@ const getArticleListById = async () => {
     res = await getArticleListByCategoryId(param);
   }
 
-  if (res.code === 0) {
+  if (res.code === 200) {
     articleList.value = res.result.list;
     total.value = res.result.total;
   }

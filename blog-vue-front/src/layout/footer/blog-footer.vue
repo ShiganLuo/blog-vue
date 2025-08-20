@@ -10,7 +10,7 @@ const route = useRoute();
     class="footer_box flex flex-col items-center justify-center"
   >
     <!-- eslint-disable-next-line -->
-    <div class="footer-color">&copy 时敢的博客 2023</div>
+    <div class="footer-color">&copy 时敢的博客 2025</div>
     <a class="footer-color change-color mt-[5px]" href="http://beian.miit.gov.cn/" target="_blank"
       ></a
     >

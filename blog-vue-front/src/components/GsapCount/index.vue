@@ -27,45 +27,57 @@ const d = reactive<NumData>({
   num: 0
 });
 
-// 实现动画的方法（明确返回类型）
-function AnimateToValue(): void {
+// 实现动画的方法
+function animateToValue(): void {
+  // 在执行动画前，确保id和DOM元素都已准备好
   if (!id.value) return;
 
-  gsap.to(d, {
-    scrollTrigger: `.num-${id.value}`,
-    duration: props.duration,
-    num: props.value,
-    onUpdate: () => {
-      // 确保数字是整数
-      d.num = Math.floor(d.num);
-    }
-  });
+  const targetSelector = `.num-${id.value}`;
+  const targetElement = document.querySelector(targetSelector);
+
+  if (targetElement) {
+    // 确保 ScrollTrigger 只注册一次
+    gsap.registerPlugin(ScrollTrigger);
+
+    gsap.to(d, {
+      scrollTrigger: targetSelector,
+      duration: props.duration,
+      num: props.value,
+      onUpdate: () => {
+        d.num = Math.floor(d.num);
+      }
+    });
+  }
 }
 
-onMounted(() => {
-  id.value = Math.random().toString(16).slice(2);
-
-  nextTick(() => {
-    gsap.registerPlugin(ScrollTrigger);
-    AnimateToValue();
-  });
-});
-
-// 监听 props.value 的变化
+// 使用 watch 监听 props.value 的变化
 watch(
   () => props.value,
   () => {
-    nextTick(() => {
-      gsap.registerPlugin(ScrollTrigger);
-      AnimateToValue();
-    });
+    // 在 props.value 变化时，如果 id 已经存在，则执行动画
+    if (id.value) {
+      nextTick(() => {
+        animateToValue();
+      });
+    }
   },
-  { immediate: true } // 添加 immediate 确保初始值也能触发
+  { immediate: true } // 这里的 immediate 是安全的
 );
+
+onMounted(() => {
+  // 在组件挂载时生成唯一的id
+  id.value = Math.random().toString(16).slice(2);
+
+  // 确保在 id 和 DOM 渲染完成后执行动画
+  nextTick(() => {
+    animateToValue();
+  });
+});
+
 </script>
 
 <template>
   <span :class="'num-' + id">
-    {{ Math.floor(d.num) }} <!-- 更安全的整数转换 -->
+    {{ Math.floor(d.num) }}
   </span>
 </template>

@@ -8,6 +8,7 @@ import { containHTML } from "@/utils/tool";
 
 import { ElNotification } from "element-plus";
 import { Delete, Compass } from "@element-plus/icons-vue";
+import Loading from "@/components/Loading/index.vue";
 
 interface MessageItem {
   id: number;

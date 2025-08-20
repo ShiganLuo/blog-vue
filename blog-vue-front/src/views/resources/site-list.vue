@@ -43,7 +43,7 @@ const mouseLeaveItem = () => {
 };
 
 const goToSite = (url: string) => {
-  window.open(url, "_blank");
+  window.open(url);
 };
 
 const returnUrl = (url: string): string => {

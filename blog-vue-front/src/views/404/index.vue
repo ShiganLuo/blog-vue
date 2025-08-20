@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
 import { ref, onBeforeUnmount } from "vue";
-
+import SvgIcon from "@/components/SvgIcon/index.vue";
 const router = useRouter();
 
 // type 可以是 'back' 或 undefined（当直接点击“返回首页”时）

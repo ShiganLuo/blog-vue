@@ -2,7 +2,7 @@
 import { useRouter } from "vue-router";
 import SkeletonItem from "../SkeletonItem/skeleton-item.vue";
 import Pagination from "../Pagination/pagination.vue";
-
+import SvgIcon from "@/components/SvgIcon/index.vue";
 // 每篇文章类型
 interface Article {
   id: number;
