@@ -8,11 +8,11 @@ export const getNotifylist = (data?: object) => {
     })
 }
 
-export const updateNotify = (data?: number) => {
+export const updateNotify = (data?: number | string) => {
 
 }
 
-export const deleteNotify = (data?: number) => {
+export const deleteNotify = (data?: number | string) => {
     return fullRequest({
         method: 'post',
         url: ' ',

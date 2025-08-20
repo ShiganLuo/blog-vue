@@ -11,6 +11,8 @@ import TextOverflow from "@/components/TextOverflow/index.vue";
 import Comment from "@/components/Comment/index.vue";
 import SkeletonItem from "@/components/SkeletonItem/skeleton-item.vue";
 import PageHeader from "@/components/PageHeader/index.vue";
+import Loading from "@/components/Loading/index.vue";
+import SvgIcon from "@/components/SvgIcon/index.vue";
 
 // store
 const userStore = useUserStore();

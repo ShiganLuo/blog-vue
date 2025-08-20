@@ -15,6 +15,7 @@ import Comment from "@/components/Comment/index.vue";
 import Tooltip from "@/components/ToolTip/index.vue";
 import PageHeader from "@/components/PageHeader/index.vue";
 import GsapCount from "@/components/GsapCount/index.vue";
+import SvgIcon from "@/components/SvgIcon/index.vue";
 
 
 interface ArticleInfo {

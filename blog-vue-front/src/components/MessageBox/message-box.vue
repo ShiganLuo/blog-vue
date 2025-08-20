@@ -11,7 +11,7 @@ import { Delete, Compass } from "@element-plus/icons-vue";
 import Loading from "@/components/Loading/index.vue";
 
 interface MessageItem {
-  id: number;
+  id: number | string;
   isView: number;
   message: string;
   type: string | number;
@@ -22,7 +22,7 @@ interface MessageItem {
 interface ListParams {
   current: number;
   size: number;
-  userId: number;
+  userId: number | string;
 }
 
 const router = useRouter();
@@ -33,7 +33,7 @@ const props = defineProps({
     default: "",
   },
   userId: {
-    type: Number,
+    type: [Number, String],
     default: 0,
   },
 });
@@ -65,7 +65,7 @@ const handleClose = async (): Promise<void> => {
   drawerShow.value = false;
 };
 
-const readMessage = async (id: number): Promise<void> => {
+const readMessage = async (id: number | string): Promise<void> => {
   await updateNotify(id);
 };
 

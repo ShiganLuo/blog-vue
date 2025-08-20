@@ -10,8 +10,8 @@ export const getAllPhotosByAlbumId = (data?: object) => {
 
 export const getAllAlbum = (data?: object) => {
   return fullRequest({
-    method: "post",
-    url: "/api/admin/users/refreshToken",
+    method: "get",
+    url: "/api/front/images/getAllAlbum",
     data: data
     });
 };

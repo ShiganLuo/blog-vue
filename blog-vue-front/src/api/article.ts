@@ -59,7 +59,7 @@ export const getArticleById = (id?: string | number) => {
 export const getArticleListByTagId = (data?: object) => {
   return fullRequest({
     method:  'post',
-    url: '',
+    url: '/api/front/articles/getArticlesByTagId',
     data: data
   })
 }
@@ -67,7 +67,7 @@ export const getArticleListByTagId = (data?: object) => {
 export const getArticleListByCategoryId = (data?: object) => {
   return fullRequest({
     method:  'post',
-    url: '',
+    url: '/api/front/articles/getArticlesByCategoryId',
     data: data
   })
 }

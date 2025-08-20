@@ -18,11 +18,6 @@ interface Album {
   album_cover: string;
 }
 
-interface ApiResponse<T> {
-  code: number;
-  result: T;
-}
-
 // 路由
 const route = useRoute();
 const router = useRouter();
@@ -36,8 +31,8 @@ const drawerShow = ref<boolean>(false);
 // 获取照片列表
 const pageGetPhotos = async (id: number) => {
   loading.value = true;
-  const res: ApiResponse<Photo[]> = await getAllPhotosByAlbumId({id});
-  if (res.code === 0) {
+  const res = await getAllPhotosByAlbumId({id});
+  if (res.code === 200) {
     photoList.value = res.result;
   }
   loading.value = false;
@@ -57,8 +52,8 @@ const toggleAlbum = (item: Album) => {
 
 // 获取相册和照片
 const getAll = async (id: string | string[] | undefined) => {
-  const res: ApiResponse<Album[]> = await getAllAlbum();
-  if (res.code === 0) {
+  const res = await getAllAlbum();
+  if (res.code === 200) {
     photoAlbumList.value = res.result;
     pageGetPhotos(Number(id));
   }

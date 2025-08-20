@@ -5,6 +5,7 @@ import { getAllAlbum } from "@/api/photo";
 
 import SkeletonItem from "@/components/SkeletonItem/skeleton-item.vue";
 import PageHeader from "@/components/PageHeader/index.vue";
+import SvgIcon from "@/components/SvgIcon/index.vue";
 
 // 相册类型定义
 interface Album {
