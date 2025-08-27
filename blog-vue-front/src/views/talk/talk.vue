@@ -85,7 +85,7 @@ const pageGetTalkList = async () => {
     }
 
     const res = await getTalkList(param);
-    if (res.code === 0) {
+    if (res.code === 200) {
       talkList.value =
         param.current === 1
           ? res.result.list
@@ -105,7 +105,7 @@ const like = async (item: TalkItem, index: number) => {
 
   if (item.is_like) {
     const res = await cancelLike({ for_id: item.id, type: 2, user_id: userStore.getUserInfo.id });
-    if (res.code === 0) {
+    if (res.code === 200) {
       talkList.value[index].is_like = false;
       talkList.value[index].like_times--;
       likePending.value = false;
@@ -117,7 +117,7 @@ const like = async (item: TalkItem, index: number) => {
     }
   } else {
     const res = await addLike({ for_id: item.id, type: 2, user_id: userStore.getUserInfo.id });
-    if (res.code === 0) {
+    if (res.code === 200) {
       talkList.value[index].is_like = true;
       talkList.value[index].like_times++;
       likePending.value = false;

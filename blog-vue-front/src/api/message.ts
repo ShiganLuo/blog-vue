@@ -42,8 +42,8 @@ export const deleteMessage = (data?: object) => {
 
 export const getAllMessage = (data?: object) => {
   return fullRequest({
-    method:  'post',
-    url: '/api/front/articles/getTimeLineArticle',
+    method:  'get',
+    url: '/api/front/comments/getAllMessage',
     data: data
   })
 }

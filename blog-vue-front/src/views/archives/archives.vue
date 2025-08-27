@@ -69,7 +69,7 @@ function groupArticlesByYear(articles: Article[]): ArchiveGroup[] {
 const getArchives = async () => {
   try {
     loading.value = true;
-    const res: ArticleListResponse = await blogTimelineGetArticleList(param.current, param.size);
+    const res: ArticleListResponse = await blogTimelineGetArticleList(param);
     if (res.code === 200) {
       const { total, list } = res.result;
       archives.value = groupArticlesByYear(list);

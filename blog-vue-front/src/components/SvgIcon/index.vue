@@ -6,6 +6,7 @@ interface Props {
   customClass?: string;
   width?: string | number;
   height?: string | number;
+  hidden?: boolean;
 }
 
 const props = defineProps<Props>();
@@ -51,7 +52,7 @@ watch(
   <svg
     :class="svgProps.customClass"
     :style="`width: ${svgProps.width}; height: ${svgProps.width || svgProps.height};`"
-    aria-hidden="true"
+    :aria-hidden="props.hidden ?? true"
   >
     <use :xlink:href="svgProps.name"></use>
   </svg>

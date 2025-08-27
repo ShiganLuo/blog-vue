@@ -11,6 +11,8 @@ import PageHeader from "@/components/PageHeader/index.vue";
 import { ElNotification } from "element-plus";
 
 import { addMessage } from "@/api/message";
+import SvgIcon from "@/components/SvgIcon/index.vue";
+
 
 // ===== 类型定义 =====
 interface UserInfo {
@@ -60,9 +62,12 @@ const toggle = (): void => {
 };
 
 const userAddMessage = (): void => {
+  console.log("-------1--------")
   if (getMessageTypeIsCard.value) {
+    console.log("-------2--------")
     router.push({ path: "/message/publish", query: { type: "add" } });
   } else {
+    console.log("-------3--------")
     if (!message.value) {
       ElNotification({
         offset: 60,
@@ -92,7 +97,7 @@ const userAddMessage = (): void => {
     };
     // 保存弹幕
     addMessage(form).then((res: AddMessageResponse) => {
-      if (res.code === 0) {
+      if (res.code === 200) {
         messageRef.value?.addDanmu(form);
         message.value = "";
         ElNotification({
@@ -121,6 +126,7 @@ onActivated(() => {
   }
   isLoaded.value = true;
 });
+
 </script>
 <template>
   <PageHeader v-if="getMessageTypeIsCard">
@@ -155,6 +161,7 @@ onActivated(() => {
               name="publish"
               :width="4"
               :height="4"
+              :hidden="false"
               @click="userAddMessage"
               @mouseenter="showMessageInput = true"
             ></svg-icon>
@@ -163,7 +170,8 @@ onActivated(() => {
       </div>
     </div>
   </PageHeader>
-  <div v-else class="relative !w-[100%] !h-[100vh] flex flex-col justify-center items-center">
+
+  <div v-else class="message-container">
     <el-popover
       placement="top-start"
       :width="110"
@@ -171,14 +179,14 @@ onActivated(() => {
       :content="`切换成${getMessageTypeIsCard ? '弹幕' : '卡片'}模式`"
     >
       <template #reference>
-        <div class="message-title cursor-pointer !z-[2000]" @click="toggle">留言</div>
+        <div class="message-title-popover" @click="toggle">留言</div>
       </template>
     </el-popover>
-    <div class="!mt-[3rem] flex items-center">
+    <div class="input-container">
       <transition name="down" mode="out-in">
         <el-input
           v-model="message"
-          class="!z-[2000] message-input !mr-[10px]"
+          class="message-input"
           placeholder="一定要留下点什么～"
           v-if="showMessageInput"
           :maxlength="555"
@@ -190,11 +198,11 @@ onActivated(() => {
           @keyup.enter="userAddMessage"
         ></el-input>
       </transition>
-      <div class="flex items-center">
+      <div class="publish-icon-container">
         <el-popover placement="top-start" :width="110" trigger="hover" content="点击发送">
           <template #reference>
             <svg-icon
-              class="!z-[2000] cursor-pointer"
+              class="publish-icon"
               name="publish"
               :width="4"
               :height="4"
@@ -207,7 +215,7 @@ onActivated(() => {
     </div>
   </div>
 
-  <div :class="['message', getMessageTypeIsCard ? '!min-h-[100vh]' : '']" @click="hideSearchInput">
+  <div :class="['message', getMessageTypeIsCard ? 'min-height: 100vh' : 'min-height: 100vh']" @click="hideSearchInput">
     <component ref="messageRef" :is="getMessageTypeIsCard ? CardMessage : DanmuMessage"></component>
   </div>
 </template>
@@ -269,5 +277,40 @@ onActivated(() => {
 
 :deep(.el-input__wrapper) {
   border-radius: 60px;
+}
+.message-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.message-title-popover {
+  cursor: pointer;
+  z-index: 2000;
+}
+
+.input-container {
+  margin-top: 3rem;
+  display: flex;
+  align-items: center;
+}
+
+.message-input {
+  z-index: 2000;
+  margin-right: 10px;
+}
+
+.publish-icon-container {
+  display: flex;
+  align-items: center;
+}
+
+.publish-icon {
+  z-index: 2000;
+  cursor: pointer;
 }
 </style>

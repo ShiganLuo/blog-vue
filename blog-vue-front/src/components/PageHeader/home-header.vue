@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, computed, type Ref } from "vue";
 import { useRoute } from "vue-router";
+import { getOneStentence } from "@/api/home";
 import { useStaticData } from "@/stores/index";
 import TypeWriter from "@/components/TypeWriter/index.vue";
 import Waves from "@/components/WelcomeComps/waves.vue";
@@ -16,6 +17,7 @@ interface SentenceResponse {
     content: string;
   };
 }
+
 
 // 页面头图类型
 interface PageHeader {
@@ -47,16 +49,16 @@ const scrollListener = debounce(() => {
   showScrollBottom.value = document.documentElement.scrollTop <= 50;
 }, 50);
 
+// https://github.com/vv314/quotes
 const initOneSentence = async () => {
-  try {
-    const res = await fetch("https://api.vvhan.com/api/ian/rand?type=json");
-    const json: SentenceResponse = await res.json();
-    if (json.success) {
-      saying.value = [json.data.content];
+
+    const res = await getOneStentence();
+    if (res.code === 200) {
+      saying.value = [res.result];
     }
-  } catch (error) {
-    console.error("获取句子失败：", error);
-  }
+    else {
+      saying.value = ["今天也要元气满满"];
+    }
 };
 
 const initScrollEvent = () => {

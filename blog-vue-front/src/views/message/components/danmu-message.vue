@@ -30,6 +30,7 @@ const init = () => {
   danmus.value = [];
   getAllMessage().then((res: any) => {
     danmus.value = res.result.list as Danmu[];
+    console.log(danmus.value)
     if (danmus.value.length > 100) {
       loop.value = true;
     }
@@ -56,6 +57,7 @@ defineExpose({
     useSlot
     :speeds="60"
     :isSuspend="true"
+    
   >
     <template #dm="{ danmu }">
       <div class="danmu-item">
@@ -71,3 +73,164 @@ defineExpose({
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+@use "sass:math";
+.danmu-item {
+  display: flex;
+  align-items: center;
+  font-size: 20px;
+  color: #fff;
+
+  .new-item {
+    position: relative;
+    display: inline-block;
+    padding: 3px 60px 3px 3px;
+    border-radius: 8px;
+
+    &::after {
+      content: "new";
+      position: absolute;
+      top: -5px;
+      right: 0;
+      color: #fff;
+      background: #ff1900;
+      padding: 2px 3px;
+      border-radius: 8px;
+    }
+  }
+}
+
+.shooting_stars {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  font-family: "Anton", sans-serif;
+  justify-content: center;
+  align-items: center;
+}
+
+.night {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform: rotateZ(45deg);
+}
+
+.shooting_star {
+  position: absolute;
+  left: 10%;
+  top: 20%;
+  height: 2px;
+  background: linear-gradient(-45deg, rgba(95, 145, 255, 1), rgba(0, 0, 255, 0));
+  border-radius: 999px;
+  filter: drop-shadow(0 0 6px rgba(105, 155, 255, 1));
+  animation:
+    tail 5s ease-in-out infinite,
+    shooting 5s ease-in-out infinite;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: calc(50% - 1px);
+    right: 0;
+    height: 2px;
+    background: linear-gradient(
+      -45deg,
+      rgba(0, 0, 255, 0),
+      rgba(95, 145, 255, 1),
+      rgba(0, 0, 255, 0)
+    );
+    transform: translateX(50%) rotateZ(45deg);
+    border-radius: 100%;
+    animation: shining 3000 ease-in-out infinite;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: calc(50% - 1px);
+    right: 0;
+    height: 2px;
+    background: linear-gradient(
+      -45deg,
+      rgba(0, 0, 255, 0),
+      rgba(95, 145, 255, 1),
+      rgba(0, 0, 255, 0)
+    );
+    transform: translateX(50%) rotateZ(45deg);
+    border-radius: 100%;
+    animation: shining 3000 ease-in-out infinite;
+    transform: translateX(50%) rotateZ(-45deg);
+  }
+
+  @for $i from 1 through 20 {
+    &:nth-child(#{$i}) {
+      $delay: math.random(9999) + 0ms;
+      top: calc(50% - #{math.random(400) - 200px});
+      left: calc(30% - #{math.random(300) + 0px});
+      animation-delay: $delay;
+      // opacity: math.random(50) / 100 + 0.5;
+
+      &::before,
+      &::after {
+        animation-delay: $delay;
+      }
+    }
+  }
+}
+
+@keyframes tail {
+  0% {
+    width: 0;
+  }
+
+  30% {
+    width: 100px;
+  }
+
+  100% {
+    width: 0;
+  }
+}
+
+@keyframes shining {
+  0% {
+    width: 0;
+  }
+
+  50% {
+    width: 30px;
+  }
+
+  100% {
+    width: 0;
+  }
+}
+
+@keyframes shooting {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(800px);
+  }
+}
+
+@keyframes sky {
+  0% {
+    transform: rotate(45deg);
+  }
+
+  100% {
+    transform: rotate(45 + 360deg);
+  }
+}
+</style>
