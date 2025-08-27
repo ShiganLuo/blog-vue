@@ -219,5 +219,50 @@ watch(
 </template>
 
 <style lang="scss" scoped>
-/* ... 样式代码保持不变 ... */
+.pos {
+  width: 100%;
+  margin: 5px 0 10px 0;
+}
+.apply-form {
+  width: 100%;
+}
+
+:deep(.el-form-item) {
+  padding: 15px 0;
+}
+
+.apply-button {
+  width: 100%;
+}
+
+:deep(.el-input__wrapper) {
+  height: 40px;
+  line-height: 40px;
+}
+
+:deep(.el-upload--picture-card) {
+  width: 150px !important;
+  height: 150px !important;
+  border-radius: 8px !important;
+}
+
+:deep(.el-upload-list__item) {
+  width: 150px !important;
+  height: 150px !important;
+  border-radius: 8px !important;
+  margin: 0;
+}
+
+:deep(.el-upload-list--picture-card) {
+  width: 150px !important;
+  height: 150px !important;
+  border-radius: 8px !important;
+}
+
+// mobile
+@media screen and (max-width: 768px) {
+  .apply-box {
+    height: 88vh;
+  }
+}
 </style>

@@ -21,14 +21,6 @@ const routes: RouteRecordRaw[] = [
           }
       },
       {
-        path: '/about',
-        name: 'About',
-        component: () => import('@/views/AboutView.vue'),
-          meta: {
-            keepAlive: true // 缓存页面
-          }
-      },
-      {
         path: "/article",
         name: "Article",
         meta: {

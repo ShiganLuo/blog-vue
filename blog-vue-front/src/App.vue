@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted,watch } from 'vue'
+import { ref, reactive, onMounted,onBeforeUnmount } from 'vue'
 import { RouterView, useRouter, useRoute } from 'vue-router'
 import { addView } from './api/site';
 import { isMobile } from './utils/tool';
 import WelcomeMessage from "@/components/WelcomeComps/WelcomeMessage.vue";
 import BackTop from "@/components/BackTop/index.vue";
+import ContextMenu from "@/components/ContextMenu/index.vue";
 const isPc = ref(true);
 const router = useRouter();
 const route = useRoute();
-const ContextMenuRef = ref(null); // ContextMenu 右键菜单组件
+const ContextMenuRef = ref<InstanceType<typeof ContextMenu> | null>(null); // ContextMenu 右键菜单组件
 
 const goBack = () => {
   router.go(-1);
@@ -17,7 +18,13 @@ const backTopProps = reactive({
   right: 0,
   svgWidth: 0,
 });
+const handleContextMenu = (e: MouseEvent) => {
+  ContextMenuRef.value?.show(e);
+};
 
+const handleClick = () => {
+  ContextMenuRef.value?.hide();
+};
 
 onMounted( async () => {
   isPc.value = !isMobile();
@@ -25,8 +32,13 @@ onMounted( async () => {
   backTopProps.right = 0;
   backTopProps.svgWidth = 6;
   addView();
+  document.addEventListener("contextmenu", handleContextMenu);
+  document.addEventListener("click", handleClick);
 })
-
+onBeforeUnmount(() => {
+  document.removeEventListener("contextmenu", handleContextMenu);
+  document.removeEventListener("click", handleClick);
+});
 
 </script>
 
@@ -40,6 +52,7 @@ onMounted( async () => {
       class="iconfont icon-fanhui"
       @click="goBack"
     ></i>
+    <ContextMenu ref="ContextMenuRef" />
   </div>
 </template>
 

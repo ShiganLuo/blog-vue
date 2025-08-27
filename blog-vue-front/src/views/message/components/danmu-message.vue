@@ -51,7 +51,7 @@ defineExpose({
   <vue-danmaku
     v-if="danmus.length"
     ref="vueDanmakuRef"
-    class="!absolute !top-[60px] left-0 w-[100%] !z-[2] h-[calc(100vh-60px)]"
+    class="danmaku-container"
     v-model:danmus="danmus"
     :loop="loop"
     useSlot
@@ -76,6 +76,15 @@ defineExpose({
 
 <style lang="scss" scoped>
 @use "sass:math";
+.danmaku-container {
+  position: absolute !important;
+  top: 60px !important;
+  left: 0;
+  width: 100%;
+  z-index: 2 !important;
+  height: calc(100vh - 60px);
+}
+
 .danmu-item {
   display: flex;
   align-items: center;

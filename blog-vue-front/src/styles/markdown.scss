@@ -9,3 +9,8 @@
 .code-block::-webkit-scrollbar-thumb {
   background-color: #efbcda !important;
 }
+.md-editor-code-head {
+  position: relative !important;
+  z-index: 10 !important;
+}
+

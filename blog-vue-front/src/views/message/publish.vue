@@ -153,7 +153,7 @@ const leaveMessage = async () => {
     res = await addMessage(form);
   }
 
-  if (res && res.code === 0) {
+  if (res && res.code === 200) {
     ElNotification({
       offset: 60,
       title: "提示",

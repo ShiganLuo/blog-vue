@@ -1,4 +1,4 @@
-<!-- <script lang="ts" setup>
+<script lang="ts" setup>
 import { ref, computed, nextTick, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
@@ -91,11 +91,11 @@ defineExpose({
 // 获取文章列表
 async function fetchArticles() {
   try {
-    const res = await http.get("/api/article/blogHomeGetArticleList/1/999");
-    if (res.code === 0) {
+    const res = await homeGetArticleList({ pageNum: 1, pageSize: 200 });
+    if (res.code === 200) {
       articles.value = res.result.list;
     } else {
-      console.error("获取文章列表失败:", res.result.message);
+      console.error("获取文章列表失败:", res.message);
     }
   } catch (error) {
     console.error("获取文章列表失败:", error);
@@ -113,7 +113,7 @@ function getRandomArticleId(): number | null {
 
 // 点击事件处理函数
 async function handleRandomClick() {
-  if (articles.value.length === 0) {
+  if (articles.value.length === 200) {
     await fetchArticles();
   }
   const id = getRandomArticleId();
@@ -228,4 +228,4 @@ img {
   background-color: var(--border-color);
   margin: 5px 0;
 }
-</style> -->
+</style>

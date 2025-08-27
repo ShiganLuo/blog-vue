@@ -138,19 +138,21 @@ onBeforeUnmount(() => {
 <template>
   <PageHeader :loading="loading" />
   <div class="center_box">
-    <el-card class="!m-[3px] !p-[10px]">
+    <!-- 替换了 !m-[3px] !p-[10px] -->
+    <el-card class="card-tight">
       <el-descriptions :column="1">
         <template #title>
           <div class="desc-title">{{ "欢迎来到" + blogName }}</div>
         </template>
-        <el-descriptions-item label="博客链接"
-          ><span v-copy="''" class="!cursor-pointer"
-            >''</span
-          >
+
+        <el-descriptions-item label="博客链接">
+          <span v-copy="''" class="cursor-pointer">''</span>
         </el-descriptions-item>
+
         <el-descriptions-item label="QQ">
-          <span v-copy="'2530320102'" class="!cursor-pointer">2530320102</span>
+          <span v-copy="'2530320102'" class="cursor-pointer">2530320102</span>
         </el-descriptions-item>
+
         <el-descriptions-item>
           <span class="desc-remark" style="text-shadow: none">
             快来申请时敢的友链吧
@@ -159,16 +161,16 @@ onBeforeUnmount(() => {
         </el-descriptions-item>
       </el-descriptions>
     </el-card>
+
     <el-skeleton :loading="loading" style="height: 100%" animated>
       <template #template>
-        <div class="flex justify-start w-[100%] !mt-[10px]" v-for="i in 2" :key="i">
-          <div
-            class="link-skeleton w-[100%] flex justify-center items-center h-[11rem] rounded-md"
-          >
+        <div class="flex-start" v-for="i in 2" :key="i">
+          <div class="link-skeleton">
             <SkeletonItem variant="text" width="80%" height="60px" />
           </div>
         </div>
       </template>
+
       <el-row class="site" v-if="linksList.length">
         <el-col :xs="24" :sm="8" v-for="(item, index) in linksList" :key="item.id">
           <el-card class="card-hover animate__animated animate__fadeIn">
@@ -182,33 +184,36 @@ onBeforeUnmount(() => {
               }"
               class="site-item site-mask"
             >
-              <div class="top flex items-center justify-between">
+              <div class="top">
                 <el-avatar
                   :key="item.id"
                   fit="cover"
                   :size="64"
                   :src="item.site_avatar || returnUrl(item.url)"
                 >
-                  <span class="avatar-font">{{ item.site_name }}</span></el-avatar
-                >
-                <div class="flex-1 !ml-[2rem]">
+                  <span class="avatar-font">{{ item.site_name }}</span>
+                </el-avatar>
+                <div class="flex-1">
                   <span :title="item.site_name" class="name" @click="goToSite(item.url)">{{
                     item.site_name
                   }}</span>
                 </div>
               </div>
+
               <div class="bottom">
                 <span :title="item.site_desc" class="desc"> {{ item.site_desc }}</span>
               </div>
+
               <div class="op-icon" v-if="getUserInfo.id">
-                <el-icon v-if="getUserInfo.id === 1 || getUserInfo.id === item.user_id"
-                  ><Edit @click="updateLink(item)"
-                /></el-icon>
+                <el-icon v-if="getUserInfo.id === 1 || getUserInfo.id === item.user_id">
+                  <Edit @click="updateLink(item)" />
+                </el-icon>
               </div>
             </div>
           </el-card>
         </el-col>
       </el-row>
+
       <div class="observer">
         <Loading :size="32" v-if="scrollLoading" />
         <template v-else>
@@ -217,9 +222,164 @@ onBeforeUnmount(() => {
       </div>
     </el-skeleton>
   </div>
+
   <linkApply v-model:show="dialogVisible" :type="applyType"></linkApply>
 </template>
 
 <style lang="scss" scoped>
-/* ... (样式部分保持不变) ... */
+/* el-card 的 margin 和 padding */
+.card-tight {
+  margin: 3px !important;
+}
+.card-tight .el-card__body {
+  padding: 10px !important;
+}
+
+.cursor-pointer {
+  cursor: pointer !important;
+}
+
+.flex-start {
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+  margin-top: 10px !important;
+}
+
+.link-skeleton {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 11rem;
+  border-radius: 0.375rem; /* 等价 rounded-md */
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* 名称容器：原 flex-1 !ml-[2rem] */
+.flex-1 {
+  flex: 1 1 0%;
+  margin-left: 2rem !important;
+}
+
+.desc {
+  &-title {
+    font-size: 1.8rem;
+  }
+  &-remark {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.site {
+  transition: height 0.8s ease;
+  &-item {
+    padding: 10px;
+    cursor: pointer;
+    position: relative;
+    height: 11rem;
+    background-position: center;
+    background-size: cover;
+
+    .top {
+      .avatar-hover {
+        animation: avatarHover 0.8s forwards;
+      }
+
+      .name {
+        display: inline-block;
+        width: 10rem;
+        font-size: 1.8rem;
+        font-weight: bold;
+        line-height: 1.7;
+        color: var(--global-white);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-decoration: none;
+        transition: 0.2s ease-in-out;
+
+        &:hover {
+          scale: 1.1;
+        }
+      }
+    }
+
+    .bottom {
+      width: 100%;
+      margin-top: 1rem;
+      .desc {
+        transition: all 0.5s;
+        display: -webkit-box;
+        width: 100%;
+        font-weight: bold;
+        color: var(--global-white);
+        line-height: 1.2;
+        font-size: 1rem;
+        text-overflow: -o-ellipsis-lastline;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        -webkit-box-orient: vertical;
+      }
+    }
+
+    .op-icon {
+      position: absolute;
+      top: 3px;
+      right: 10px;
+      font-size: 24px;
+      font-weight: 600;
+      z-index: 3333;
+    }
+  }
+}
+
+.op-icon {
+  color: var(--global-white);
+}
+
+.link-skeleton {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.site-mask::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+@keyframes avatarHover {
+  0% {
+    transform: translateY(0);
+  }
+
+  100% {
+    transform: translateY(-100px);
+  }
+}
+
+.observer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
+  color: var(--font-color);
+  margin-top: 30px;
+  letter-spacing: 1px;
+}
 </style>

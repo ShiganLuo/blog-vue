@@ -243,7 +243,7 @@ watch(
             </div>
           </div>
           <div :class="['like', isLike ? 'is-like' : '']" @click="like">
-            <i class="iconfont icon-icon1 !mr-[5px]"></i>
+            <i class="iconfont icon-icon1 mr-5px"></i>
             <GsapCount
               :class="[isLike ? 'is-like' : '']"
               v-if="articleInfo.thumbs_up_times - 0 < 1000"
@@ -330,10 +330,10 @@ watch(
               </el-col>
             </el-row>
           </div>
-          <div class="!p-[2rem] comment-box">
+          <div class="p-2rem comment-box">
             <Comment
               ref="commentRef"
-              class="w-[100%]"
+              class="w-100"
               type="comment"
               :id="Number(route.query.id ?? 0)"
               :author-id="articleInfo.author_id"
@@ -394,6 +394,22 @@ watch(
 </template>
 
 <style lang="scss" scoped>
+
+.md-preview {
+  padding: 20px;  /* 内边距，内容离边框有点距离 */
+}
+.mr-5px {
+  margin-right: 5px !important;
+}
+.font-semibold {
+  font-weight: 600;
+}
+.p-2rem {
+  padding: 2rem !important;
+}
+.w-100 {
+  width: 100%;
+}
 .article {
   &-info {
     padding: 2rem 2rem;
