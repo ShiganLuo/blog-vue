@@ -1,16 +1,13 @@
 <script setup lang="ts">
 import { reactive, ref, watch, h } from "vue";
 import { frontGetComment, addComment, deleteComment } from "@/api/comment";
-import TextOverflow from "@/components/TextOverflow/index.vue";
-import ChildrenItem from "./ChildrenItem.vue";
+import { addLike, cancelLike } from "@/api/like";
 import Loading from "@/components/Loading/index.vue";
 import { useUserStore } from "@/stores/index";
 import { ElMessageBox, ElNotification } from "element-plus";
-import { addLike, cancelLike } from "@/api/like";
-import { containHTML } from "@/utils/tool";
-import type { CommentType, CommentItem, CommentParams } from "./comment";
-
-
+import type { CommentType, CommentItem, CommentParams } from "./Comment";
+import ChildrenItem from "./ChildrenItem.vue";
+import CommentInput from "./CommentInput.vue"; // 引入你提供的评论输入组件
 
 const userStore = useUserStore();
 const emits = defineEmits<{
@@ -24,32 +21,26 @@ const props = defineProps<{
   authorId: number | string;
 }>();
 
-const childrenRef = ref<any[]>([]);
 const commentList = ref<CommentItem[]>([]);
 const commentTotal = ref(0);
-const likePending = ref(false);
-const currentApplyIndex = ref(0);
+const topCommentInput = ref(""); // 用于顶层评论输入框的 v-model
+const topCommentInputRef = ref<InstanceType<typeof CommentInput> | null>(null);
 
 const params = reactive<CommentParams>({
   current: 1,
-  size: 5,
-  type: props.type, // 一级评论为post类型
-  for_id: props.id,
-  order: props.active,
-  user_id: userStore.getUserInfo.id,
+  size: 10,
+  rootId: props.id,
   loading: false,
 });
 
-// 获取所有一级评论
+// 获取所有评论（假设API返回嵌套结构）
 const getComment = async (type?: string) => {
   params.loading = true;
   if (type === "clear") params.current = 1;
-  // params.type = props.type;
   const res = await frontGetComment(params);
   if (res && res.code === 200) {
     const { list, total } = res.result;
-    list.forEach((l: any) => (l.showApplyInput = false));
-    commentList.value = params.current === 1 ? list : commentList.value.concat(list); // 如果是第一页需要替换数据，如果不是需要拼接数据
+    commentList.value = params.current === 1 ? list : commentList.value.concat(list);
     commentTotal.value = total;
   } else {
     ElNotification({ offset: 60, title: "错误提示", message: h("div", { style: "color: #f56c6c; font-weight: 600;" }, res.message) });
@@ -62,57 +53,34 @@ const showMore = () => {
   getComment();
 };
 
-// 评论点赞
-const like = async (item: CommentItem, index: number) => {
-  if (likePending.value) return;
-  likePending.value = true;
+// 处理点赞事件
+const handleLike = async (comment: CommentItem) => {
   let res;
-  const payload = { for_id: item.id, type: props.type, user_id: userStore.getUserInfo.id };
-  if (item.is_like) {
+  const payload = { for_id: comment.id, type: props.type, user_id: userStore.getUserInfo.id };
+  if (comment.is_like) {
     res = await cancelLike(payload);
     if (res?.code === 200) {
-      commentList.value[index].is_like = false;
-      commentList.value[index].thumbs_up--;
+      comment.is_like = false;
+      comment.thumbs_up--;
       ElNotification({ offset: 60, title: "提示", message: h("div", { style: "color: #7ec050; font-weight: 600;" }, "已取消点赞") });
     }
   } else {
     res = await addLike(payload);
     if (res?.code === 200) {
-      commentList.value[index].is_like = true;
-      commentList.value[index].thumbs_up++;
+      comment.is_like = true;
+      comment.thumbs_up++;
       ElNotification({ offset: 60, title: "提示", message: h("div", { style: "color: #7ec050; font-weight: 600;" }, "点赞成功") });
     }
   }
-  likePending.value = false;
 };
 
-const apply = (item: CommentItem, index: number) => {
-  commentList.value[index].showApplyInput = true;
-  currentApplyIndex.value = index;
-  childrenRef.value[index]?.apply(item, "parent");
-};
-
-const close = (index: number) => {
-  commentList.value[index].showApplyInput = false;
-  currentApplyIndex.value = 0;
-  childrenRef.value[index]?.closeComment();
-};
-
-const changeShowApplyInput = (val: boolean, index: number) => {
-  commentList.value[index].showApplyInput = val;
-};
-
-const closeComment = () => {
-  childrenRef.value.forEach((v) => v?.closeComment());
-};
-
-// 删除评论
-const deleteOwnComment = (id: number | string) => {
+// 处理删除事件
+const handleDelete = (commentId: number | string) => {
   ElMessageBox.confirm("确认删除此条评论吗？子级评论也会被删除哦", "提示", {
     confirmButtonText: "确认",
     cancelButtonText: "取消",
   }).then(async () => {
-    const res = await deleteComment(id);
+    const res = await deleteComment(commentId);
     if (res?.code === 200) {
       ElNotification({ offset: 60, title: "提示", message: h("div", { style: "color: #7ec050; font-weight: 600;" }, "删除成功") });
       getComment("clear");
@@ -123,54 +91,45 @@ const deleteOwnComment = (id: number | string) => {
   });
 };
 
-// 增加评论
-const publish = async (item: any) => {
-  console.log("这是ParentItem的publish")
-  const data = {
+// 回复评论，由CommentItem触发
+const publish = async (data: { content: string, for_id?: number | string, to_id?: string }) => {
+  console.log("这是parent的publish", data)
+  const commentData = {
     from_id: userStore.getUserInfo.id,
-    content: item.content,
-    for_id: props.id,
+    content: data.content,
+    for_id: data.for_id,
+    to_id: data.to_id,
+    type: "comment",
     author_id: props.authorId,
-    type: props.type,
+    root_id: props.id
   };
-  console.log(data)
-  const res = await addComment(data);
+  console.log(commentData)
+  const res = await addComment(commentData);
   if (res.code === 200) {
     ElNotification({ offset: 60, title: "提示", message: h("div", { style: "color: #7ec050; font-weight: 600;" }, "评论成功") });
-    params.current = 1;
-    childrenRef.value[currentApplyIndex.value]?.getComment("clear");
-    currentApplyIndex.value = 0;
+    getComment("clear");
     emits("refresh");
+    if (!data.for_id) {
+      topCommentInputRef.value?.clear(); // 清空顶层评论输入框
+    }
   } else {
     ElNotification({ offset: 60, title: "错误提示", message: h("div", { style: "color: #f56c6c; font-weight: 600;" }, res.message) });
   }
 };
 
 watch(
-  () => props.type,
+  () => props.id,
   () => {
     Object.assign(params, {
-      for_id: props.id,
-      type: props.type,
-      order: props.active,
+      rootId: props.id
     });
     getComment();
   },
   { immediate: true }
 );
 
-watch(
-  () => props.active,
-  (newV) => {
-    Object.assign(params, {
-      order: newV,
-      current: 1,
-    });
-    getComment();
-  }
-);
 
-defineExpose({ getComment, closeComment });
+defineExpose({ getComment });
 </script>
 
 <template>
@@ -178,87 +137,21 @@ defineExpose({ getComment, closeComment });
     <template v-if="commentList.length">
       <div
         class="!mt-[0.5rem] animate__animated animate__fadeIn"
-        v-for="(comment, index) in commentList"
-        :key="index"
+        v-for="comment in commentList"
+        :key="comment.id"
       >
-        <div class="flex justify-start items-start">
-          <div class="avatar-box">
-            <el-avatar class="avatar" :src="comment.from_avatar">{{ comment.from_name }}</el-avatar>
-          </div>
-          <div class="right !w-[100%]">
-            <div class="cursor-pointer">
-              {{ comment.from_name }}
-              <span v-if="comment.from_id == 1" class="up">UP</span>
-            </div>
-            <div id="comment-content" class="!mt-[1rem]">
-              <span v-if="containHTML(comment.content)" v-html="comment.content"></span>
-              <TextOverflow
-                v-else
-                class="content"
-                :key="comment.id"
-                :text="comment.content"
-                :maxLines="3"
-                :font-size="16"
-              >
-                <template v-slot:default="{ clickToggle, expanded }">
-                  <span @click="clickToggle" class="btn">
-                    {{ expanded ? "收起" : "展开" }}
-                  </span>
-                </template>
-              </TextOverflow>
-            </div>
-            <div class="!mt-[0.5rem]">
-              <span class="!mr-[1rem] ip">{{ `IP: ${comment.ipAddress}` }}</span>
-              <span
-                :class="[
-                  'thumbs',
-                  '!mr-[1rem]',
-                  'iconfont',
-                  'icon-icon1',
-                  comment.is_like ? 'like-active' : '',
-                ]"
-                @click="like(comment, index)"
-              >
-                <span class="!ml-[0.5rem]">{{ comment.thumbs_up }}</span>
-              </span>
-              <span class="!mr-[1rem] apply cursor-pointer" @click="apply(comment, index)"
-                >回复</span
-              >
-              <span
-                v-if="comment.showApplyInput"
-                class="!mr-[1rem] close cursor-pointer"
-                @click="close(index)"
-                >关闭</span
-              >
-              <span
-                class="!mr-[1rem] delete cursor-pointer"
-                v-if="
-                  userStore.getUserInfo.id == comment.from_id || userStore.getUserInfo.role == 1
-                "
-                @click="deleteOwnComment(comment.id)"
-                >删除</span
-              >
-            </div>
-            <div class="!mt-[0.5rem]">{{ comment.createdAt }}</div>
-            <ChildrenItem
-              class="!mt-[1.5rem]"
-              ref="childrenRef"
-              type="comment"
-              :id="comment.id"
-              :parent_id="props.id"
-              :parentShowApply="comment.showApplyInput"
-              :author-id="authorId"
-              @parentApply="publish"
-              @refresh="emits('refresh')"
-              @changeShowApplyInput="(val) => changeShowApplyInput(val, index)"
-            />
-          </div>
-        </div>
+        <ChildrenItem
+          :comment="comment"
+          :type="type"
+          :author-id="authorId"
+          @like="handleLike"
+          @delete="handleDelete"
+          @publish="publish"
+        />
       </div>
     </template>
-
     <Loading :size="32" v-if="params.loading" />
-    <div v-else-if="commentTotal > commentList.length" class="show-more" @click="showMore">
+    <div v-else-if="commentTotal > params.size" class="show-more" @click="showMore">
       展开更多
     </div>
     <div v-else class="h-[48px]"></div>

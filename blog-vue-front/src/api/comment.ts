@@ -8,11 +8,10 @@ export const addComment = (data?: object) => {
   })
 }
 
-export const frontGetCommentTotal = (data?: object) => {
+export const frontGetCommentTotal = (id: number | string) => {
   return fullRequest({
-    method:  'post',
-    url: '/api/front/comments/getCommentTotal',
-    data: data
+    method:  'get',
+    url: `/api/front/comments/getCommentTotal/${id}`,
   })
 }
 

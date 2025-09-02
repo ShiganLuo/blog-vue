@@ -51,7 +51,7 @@ const toLogin = (): void => {
   userStore.setShowLogin(true);
 };
 
-// 评论发布逻辑
+// 评论文章，由ParentItem触发
 const publish = async (): Promise<void> => {
   console.log("这是index的publish")
   if (!userStore.getUserInfo.id) {
@@ -69,6 +69,7 @@ const publish = async (): Promise<void> => {
     for_id: props.id,
     type: props.type, 
     author_id: props.authorId, // 文章作者的id用于消息推送
+    root_id: props.id
   };
   console.log(data)
   const res: any = await addComment(data);
@@ -102,10 +103,7 @@ const getTotal = (val: number): void => {
 
 // 获取评论总数（后端接口）
 const getCommentTotal = async (): Promise<void> => {
-  const res: any = await frontGetCommentTotal({
-    type: props.type,
-    for_id: props.id,
-  });
+  const res: any = await frontGetCommentTotal(props.id);
   if (res && res.code === 200) {
     getTotal(Number(res.result));
   } else {
@@ -194,7 +192,6 @@ defineExpose({
           />
         </div>
       </div>
-      <!-- 评论组件 这里采用了父级评论和子级评论嵌套的方式 -->
       <div class="comment-list">
         <ParentItem
           v-if="isExpand"

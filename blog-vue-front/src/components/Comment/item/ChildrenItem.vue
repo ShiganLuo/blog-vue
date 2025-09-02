@@ -1,320 +1,153 @@
 <script setup lang="ts">
-import { reactive, ref, watch, h } from 'vue';
-import { frontGetComment, addComment, deleteComment } from '@/api/comment';
-import { ElNotification, ElMessageBox } from 'element-plus';
-
-import Pagination from '@/components/Pagination/pagination.vue';
-import CommentInput from './CommentInput.vue';
-import { useUserStore } from '@/stores/index';
-import Loading from '@/components/Loading/index.vue';
-import { addLike, cancelLike } from '@/api/like';
-
-import type { CommentItem, CommentTo, CommentParams } from './comment';
+import { ref } from "vue";
+import { useUserStore } from "@/stores/index";
+import { containHTML } from "@/utils/tool";
+import TextOverflow from "@/components/TextOverflow/index.vue";
+import CommentInput from "./CommentInput.vue";
+import type { CommentItem, CommentType } from "./Comment";
 
 const userStore = useUserStore();
+const showApplyInput = ref(false);
+const replyInputText = ref(""); // 用于子评论输入框的 v-model
 
 const emits = defineEmits<{
-  (e: 'parentApply', val: CommentTo): void;
-  (e: 'refresh'): void;
-  (e: 'changeShowApplyInput', val: boolean): void;
+  (e: 'like', comment: CommentItem): void;
+  (e: 'delete', commentId: number | string): void;
+  (e: 'publish', data: any): void; // 用于子评论的发布
 }>();
 
 const props = defineProps<{
-  type: string;
-  parent_id: number | string;
-  id: number | string;
-  parentShowApply: boolean;
+  comment: CommentItem;
+  type: CommentType;
   authorId: number | string;
 }>();
+const handleLike = () => {
+  emits('like', props.comment);
+};
 
-const params = reactive<CommentParams>({
-  current: 1,
-  size: 5,
-  type: 'comment', // 子评论类型为comment
-  for_id: 0,
-  order: '',
-  loading: false
-});
+const handleDelete = () => {
+  emits('delete', props.comment.id);
+};
 
-const commentList = ref<CommentItem[]>([]);
-const commentTotal = ref<number>(0);
-const currentCommentIndex = ref<number>(0);
+const handleApply = () => {
+  showApplyInput.value = !showApplyInput.value
+};
 
-const showApplyInput = ref<boolean>(false);
-const commentTo = reactive<CommentTo>({
-  to_name: '',
-  to_avatar: '',
-  to_id: '',
-  parent_id: 0,
-  from_id: 0,
-  from_name: '',
-  from_avatar: '',
-  content: '',
-});
-const primaryCommentTo = reactive<CommentTo>({ ...commentTo });
-const commentText = ref<string>('');
-const commentInputRef = ref<InstanceType<typeof CommentInput> | null>(null);
-
-const isParentApply = ref<boolean>(false);
-const likePending = ref<boolean>(false);
-
-const closeComment = () => {
-  emits('changeShowApplyInput', false);
-  isParentApply.value = false;
+const handleClose = () => {
   showApplyInput.value = false;
-  Object.assign(commentTo, primaryCommentTo);
+  replyInputText.value = "";
 };
 
-const getComment = async (type?: string) => {
-  params.loading = true;
-  if (type === 'clear') {
-    params.current = 1;
-  }
-  // params.type = props.type;
-  const res = await frontGetComment(params);
-  if (res?.code === 200) {
-    const { list, total } = res.result;
-    commentList.value = list;
-    commentTotal.value = Number(total);
-  } else {
-    ElNotification({
-      offset: 60,
-      title: '错误提示',
-      message: h('div', { style: 'color: #f56c6c; font-weight: 600;' }, res.message),
-    });
-  }
-  params.loading = false;
-};
-
-const like = async (item: CommentItem, index: number) => {
-  if (likePending.value) return;
-  likePending.value = true;
-  let res;
-  if (item.is_like) {
-    res = await cancelLike({ for_id: item.id, type: props.type, user_id: userStore.getUserInfo.id });
-    if (res?.code === 200) {
-      item.is_like = false;
-      item.thumbs_up--;
-    }
-  } else {
-    res = await addLike({ for_id: item.id, type: props.type, user_id: userStore.getUserInfo.id });
-    if (res?.code === 200) {
-      item.is_like = true;
-      item.thumbs_up++;
-    }
-  }
-  likePending.value = false;
-};
-
-// 支持对评论进行回复
-const apply = (item: CommentItem, type: 'parent' | 'children', index = 0) => {
-  if (type === 'parent') {
-    isParentApply.value = true;
-    emits('changeShowApplyInput', true);
-  } else {
-    isParentApply.value = false;
-    currentCommentIndex.value = index;
-    emits('changeShowApplyInput', false);
-  }
-  Object.assign(commentTo, {
-    parent_id: props.parent_id,
-    from_id: item.from_id,
-    from_avatar: item.from_avatar,
-    from_name: item.from_name,
-    content: '',
+// 提交回复
+const submitReply = () => {
+  emits('publish', {
+    content: replyInputText.value,
+    for_id: props.comment.id,
+    to_name: props.comment.from_name,
+    to_id: props.comment.from_id
   });
-  commentText.value = '';
-  showApplyInput.value = true;
+  // 清空输入框内容
+  replyInputText.value = "";
+  showApplyInput.value = false;
 };
-
-const deleteOwnComment = (id: number | string) => {
-  ElMessageBox.confirm('确认删除此条评论吗', '提示', {
-    confirmButtonText: '确认',
-    cancelButtonText: '取消',
-  }).then(async () => {
-    const res = await deleteComment(id);
-    if (res?.code === 200) {
-      ElNotification({
-        offset: 60,
-        title: '提示',
-        message: h('div', { style: 'color: #7ec050; font-weight: 600;' }, '删除成功'),
-      });
-      getComment();
-      emits('refresh');
-    } else {
-      ElNotification({
-        offset: 60,
-        title: '错误提示',
-        message: h('div', { style: 'color: #f56c6c; font-weight: 600;' }, res.message),
-      });
-    }
-  });
-};
-
-// 控制页码
-const pagination = (page: { current: number }) => {
-  params.current = page.current;
-  getComment();
-};
-
-// 如果是对父评论的回复，交由父组件处理，否则自己处理
-const publish = async () => {
-  console.log("这是ChildrenItem的publish")
-  if (!userStore.getUserInfo.id) {
-    ElNotification({
-      offset: 60,
-      title: '温馨提示',
-      message: h('div', { style: 'color: #e6c081; font-weight: 600;' }, '请先登录'),
-    });
-    return;
-  }
-
-  if (isParentApply.value) {
-    commentTo.content = commentText.value;
-    console.log(commentTo.content)
-    emits('parentApply', commentTo);
-    closeComment();
-    return;
-  }
-
-  const data = {
-    from_id: userStore.getUserInfo.id,
-    content: commentText.value,
-    for_id: props.id,
-    type: props.type,
-    author_id: props.authorId,
-  };
-  console.log(data)
-  const res = await addComment(data);
-  if (res?.code === 200) {
-    commentText.value = '';
-    ElNotification({
-      offset: 60,
-      title: '提示',
-      message: h('div', { style: 'color: #7ec050; font-weight: 600;' }, '评论成功'),
-    });
-    closeComment();
-    params.current = 1;
-    getComment();
-    commentInputRef.value?.clear();
-  } else {
-    ElNotification({
-      offset: 60,
-      title: '错误提示',
-      message: h('div', { style: 'color: #f56c6c; font-weight: 600;' }, res.message),
-    });
-  }
-};
-
-// 当 parent_id 变化时，触发对当前评论的子评论拉取
-watch(
-  () => props.parent_id,
-  () => {
-    Object.assign(params, {
-      for_id: props.id,
-      type: props.type,
-      parent_id: props.parent_id,
-    });
-    getComment();
-  },
-  { immediate: true }
-);
-
-defineExpose({ getComment, closeComment, apply });
 </script>
 
 <template>
-  <div class="comment-children">
-    <div v-if="commentList.length > 0" class="animate__animated animate__fadeIn">
-      <div
-        class="!mt-[0.5rem] flex justify-start items-start"
-        v-for="(comment, index) in commentList"
-        :key="comment.id"
-      >
-        <div class="!w-[30px] flex justify-start">
-          <el-avatar :src="comment.from_avatar" :size="24" shape="circle"></el-avatar>
+  <div class="comment-item">
+    <div class="flex justify-start items-start">
+      <div class="avatar-box">
+        <el-avatar class="avatar" :src="comment.from_avatar">{{ comment.from_name }}</el-avatar>
+      </div>
+      <div class="right !w-[100%]">
+        <div class="cursor-pointer">
+          {{ comment.from_name }}
+          <span v-if="comment.from_id == 1" class="up">UP</span>
+          <span v-if="comment.to_name" class="reply-to">
+            回复 <span class="reply-name">{{ comment.to_name }}</span>
+          </span>
         </div>
-        <div class="!ml-[5px]">
-          <div>
-            <span class="!mr-[0.5rem]">{{ comment.from_name }}</span>
-            <span v-if="comment.from_id == 1" class="up">UP</span>
-            <span class="!mr-[1rem] content-apply">回复</span>
-            <span class="to-name">@</span>
-            <span class="!mr-[3px] to-name"> {{ comment.to_name }}: </span>
-            <span class="content" v-html="comment.content"></span>
-          </div>
-          <div class="!mt-[0.5rem]">
-            <span class="!mr-[1rem] ip">{{ `IP: ${comment.ipAddress}` }}</span>
-            <span
-              :class="[
-                'thumbs',
-                '!mr-[1rem]',
-                'iconfont',
-                'icon-icon1',
-                comment.is_like ? 'like-active' : '',
-              ]"
-              @click="like(comment, index)"
-            >
-              <span class="!ml-[0.5rem]">{{ comment.thumbs_up }}</span>
-            </span>
-            <span
-              class="!mr-[1rem] apply cursor-pointer"
-              v-if="userStore.getUserInfo.id != comment.from_id"
-              @click="apply(comment, 'children', index)"
-              >回复</span
-            >
-            <!-- 这个关闭按钮只关闭子评论的输入框 回复主评论的输入框在ParentItem里关闭 -->
-            <span
-              class="!mr-[1rem] close cursor-pointer"
-              v-if="showApplyInput && !isParentApply && index == currentCommentIndex"
-              @click="closeComment"
-              >关闭</span
-            >
-            <span
-              class="!mr-[1rem] delete cursor-pointer"
-              v-if="userStore.getUserInfo.id == comment.from_id || userStore.getUserInfo.role == 1"
-              @click="deleteOwnComment(comment.id)"
-              >删除</span
-            >
-          </div>
-          <div class="!mt-[0.5rem]">{{ comment.createdAt }}</div>
+        <div id="comment-content" class="!mt-[1rem]">
+          <span v-if="containHTML(comment.content)" v-html="comment.content"></span>
+          <TextOverflow
+            v-else
+            class="content"
+            :key="comment.id"
+            :text="comment.content"
+            :maxLines="3"
+            :font-size="16"
+          >
+            <template v-slot:default="{ clickToggle, expanded }">
+              <span @click="clickToggle" class="btn">
+                {{ expanded ? "收起" : "展开" }}
+              </span>
+            </template>
+          </TextOverflow>
+        </div>
+        <div class="!mt-[0.5rem]">
+          <span class="!mr-[1rem] ip">{{ `IP: ${comment.ipAddress}` }}</span>
+          <span
+            :class="[
+              'thumbs',
+              '!mr-[1rem]',
+              'iconfont',
+              'icon-icon1',
+              comment.is_like ? 'like-active' : '',
+            ]"
+            @click="handleLike"
+          >
+            <span class="!ml-[0.5rem]">{{ comment.thumbs_up }}</span>
+          </span>
+          <span class="!mr-[1rem] apply cursor-pointer" @click="handleApply">回复</span>
+          <span
+            v-if="showApplyInput"
+            class="!mr-[1rem] close cursor-pointer"
+            @click="handleClose"
+          >关闭</span>
+          <span
+            class="!mr-[1rem] delete cursor-pointer"
+            v-if="userStore.getUserInfo.id == comment.from_id || userStore.getUserInfo.role == 1"
+            @click="handleDelete"
+          >删除</span>
+        </div>
+        <div class="!mt-[0.5rem]">{{ comment.createdAt }}</div>
+
+        <div class="!mt-[1rem]" v-if="showApplyInput">
+          <CommentInput
+            v-model:inputText="replyInputText"
+            :showPublishButton="true"
+            :placeholder="comment.from_name"
+            :parent="false"
+            @publish="submitReply"
+          />
+        </div>
+
+        <div v-if="comment.childComments && comment.childComments.length > 0" class="children-list !ml-[2rem] !mt-[1rem]">
+          <ChildrenItem
+            v-for="childComment in comment.childComments"
+            :key="childComment.id"
+            :comment="childComment"
+            :type="type"
+            :author-id="authorId"
+            @like="handleLike"
+            @delete="handleDelete"
+            @publish="emits('publish', $event)"
+          />
         </div>
       </div>
     </div>
-    <Loading :size="24" v-if="params.loading" />
-    <template v-if="showApplyInput">
-      <div class="w-[100%] flex justify-start items-center">
-        <CommentInput
-          ref="commentInputRef"
-          v-model:inputText="commentText"
-          :placeholder="commentTo.from_name || ''"
-          :show-publish-button="false"
-          :parent="false"
-          @publish="publish"
-        />
-      </div>
-    </template>
-    <Pagination
-      class="animate__animated animate__fadeIn"
-      v-if="commentTotal > params.size"
-      :size="params.size"
-      :current="params.current"
-      layout="prev, pager, next"
-      :total="commentTotal"
-      @pagination="pagination"
-    />
   </div>
 </template>
 
 <style lang="scss" scoped>
-.comment-children {
-  margin-top: 1rem;
+.comment-parent {
+  width: 100%;
 }
 
-.content {
-  font-size: 14px;
-  word-break: break-all;
-  vertical-align: middle;
+.active {
+  color: var(--primary);
+}
+.icon-icon1 {
+  cursor: pointer;
 }
 .thumbs {
   word-break: keep-all;
@@ -329,37 +162,6 @@ defineExpose({ getComment, closeComment, apply });
   color: var(--primary);
 }
 
-.content-apply {
-  font-size: 0.8rem;
-}
-.to-name {
-  color: var(--primary);
-}
-.ip {
-  font-size: 0.8rem;
-  color: var(--font-color);
-  display: inline-block;
-}
-.show-more {
-  cursor: pointer;
-  margin-top: 3px;
-
-  &:hover {
-    color: var(--primary);
-  }
-}
-.like-active {
-  color: var(--primary);
-  transform: scale(1.05);
-}
-
-.up {
-  margin-right: 1rem;
-  font-size: 0.8rem;
-  font-weight: 800;
-  color: var(--hot-color);
-}
-
 .close {
   color: var(--top);
   word-break: keep-all;
@@ -368,32 +170,78 @@ defineExpose({ getComment, closeComment, apply });
     color: var(--hot-color);
   }
 }
+
+.content-apply {
+  font-size: 0.8rem;
+}
+
 .delete {
   word-break: keep-all;
   font-size: 1rem;
   color: var(--top);
+
   &:hover {
     color: var(--hot-color);
   }
 }
-.pagination {
-  text-align: left;
-  margin: 0.5rem 0;
-  display: flex;
-  flex-direction: row;
-  :deep(.el-pagination) {
-    font-size: 0.8rem;
-    --el-pagination-button-width: 16px;
-    --el-pagination-button-height: 16px;
-    --el-pagination-button-disabled-color: var(--el-text-color-placeholder);
-    --el-pagination-button-disabled-bg-color: var(--el-fill-color-blank);
-    --el-pagination-button-bg-color: var(--el-fill-color);
-    --el-pagination-hover-color: var(--el-color-primary);
-    --el-pagination-font-size-small: 12px;
-    --el-pagination-button-width-small: 16px;
-    --el-pagination-button-height-small: 16px;
-    --el-pagination-item-gap: 8px;
+
+.ip {
+  font-size: 0.8rem;
+  display: inline-block;
+}
+
+.show-more {
+  cursor: pointer;
+  margin-top: 3px;
+  font-size: 0.8rem;
+  &:hover {
+    color: var(--primary);
+  }
+}
+
+.like-active {
+  color: var(--primary);
+  transform: scale(1.05);
+}
+
+.up {
+  margin-left: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--hot-color);
+}
+
+.btn {
+  color: var(--primary);
+  cursor: pointer;
+}
+
+@media screen and (max-width: 768px) {
+  .right {
+    margin-left: 10px;
+  }
+
+  .avatar-box {
+    width: 32px;
+    height: 32px;
+  }
+  .avatar {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+@media screen and (min-width: 768px) {
+  .avatar-box {
+    width: 45px;
+    height: 45px;
+  }
+  .avatar {
+    width: 45px;
+    height: 45px;
+  }
+  .right {
+    margin-left: 10px;
   }
 }
 </style>
-
