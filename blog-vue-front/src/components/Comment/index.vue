@@ -53,6 +53,7 @@ const toLogin = (): void => {
 
 // 评论发布逻辑
 const publish = async (): Promise<void> => {
+  console.log("这是index的publish")
   if (!userStore.getUserInfo.id) {
     ElNotification({
       offset: 60,
@@ -66,10 +67,10 @@ const publish = async (): Promise<void> => {
     from_id: userStore.getUserInfo.id,
     content: commentText.value,
     for_id: props.id,
-    type: props.type,
-    author_id: props.authorId,
+    type: props.type, 
+    author_id: props.authorId, // 文章作者的id用于消息推送
   };
-
+  console.log(data)
   const res: any = await addComment(data);
   if (res.code === 200) {
     commentText.value = "";
@@ -102,7 +103,7 @@ const getTotal = (val: number): void => {
 // 获取评论总数（后端接口）
 const getCommentTotal = async (): Promise<void> => {
   const res: any = await frontGetCommentTotal({
-    type: "post",
+    type: props.type,
     for_id: props.id,
   });
   if (res && res.code === 200) {

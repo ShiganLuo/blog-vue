@@ -33,7 +33,7 @@ const currentApplyIndex = ref(0);
 const params = reactive<CommentParams>({
   current: 1,
   size: 5,
-  type: 'post', // 一级评论为post类型
+  type: props.type, // 一级评论为post类型
   for_id: props.id,
   order: props.active,
   user_id: userStore.getUserInfo.id,
@@ -46,11 +46,10 @@ const getComment = async (type?: string) => {
   if (type === "clear") params.current = 1;
   // params.type = props.type;
   const res = await frontGetComment(params);
-  console.log(params)
   if (res && res.code === 200) {
     const { list, total } = res.result;
     list.forEach((l: any) => (l.showApplyInput = false));
-    commentList.value = params.current === 1 ? list : commentList.value.concat(list);
+    commentList.value = params.current === 1 ? list : commentList.value.concat(list); // 如果是第一页需要替换数据，如果不是需要拼接数据
     commentTotal.value = total;
   } else {
     ElNotification({ offset: 60, title: "错误提示", message: h("div", { style: "color: #f56c6c; font-weight: 600;" }, res.message) });
@@ -68,7 +67,7 @@ const like = async (item: CommentItem, index: number) => {
   if (likePending.value) return;
   likePending.value = true;
   let res;
-  const payload = { for_id: item.id, type: "comment", user_id: userStore.getUserInfo.id };
+  const payload = { for_id: item.id, type: props.type, user_id: userStore.getUserInfo.id };
   if (item.is_like) {
     res = await cancelLike(payload);
     if (res?.code === 200) {
@@ -126,13 +125,15 @@ const deleteOwnComment = (id: number | string) => {
 
 // 增加评论
 const publish = async (item: any) => {
+  console.log("这是ParentItem的publish")
   const data = {
     from_id: userStore.getUserInfo.id,
     content: item.content,
     for_id: props.id,
     author_id: props.authorId,
-    type: 'post',
+    type: props.type,
   };
+  console.log(data)
   const res = await addComment(data);
   if (res.code === 200) {
     ElNotification({ offset: 60, title: "提示", message: h("div", { style: "color: #7ec050; font-weight: 600;" }, "评论成功") });
@@ -150,7 +151,7 @@ watch(
   () => {
     Object.assign(params, {
       for_id: props.id,
-      type: 'post',
+      type: props.type,
       order: props.active,
     });
     getComment();
@@ -242,7 +243,7 @@ defineExpose({ getComment, closeComment });
             <ChildrenItem
               class="!mt-[1.5rem]"
               ref="childrenRef"
-              :type="props.type"
+              type="comment"
               :id="comment.id"
               :parent_id="props.id"
               :parentShowApply="comment.showApplyInput"

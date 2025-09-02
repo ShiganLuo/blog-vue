@@ -91,13 +91,13 @@ const like = async (item: CommentItem, index: number) => {
   likePending.value = true;
   let res;
   if (item.is_like) {
-    res = await cancelLike({ for_id: item.id, type: "comment", user_id: userStore.getUserInfo.id });
+    res = await cancelLike({ for_id: item.id, type: props.type, user_id: userStore.getUserInfo.id });
     if (res?.code === 200) {
       item.is_like = false;
       item.thumbs_up--;
     }
   } else {
-    res = await addLike({ for_id: item.id, type: "comment", user_id: userStore.getUserInfo.id });
+    res = await addLike({ for_id: item.id, type: props.type, user_id: userStore.getUserInfo.id });
     if (res?.code === 200) {
       item.is_like = true;
       item.thumbs_up++;
@@ -159,6 +159,7 @@ const pagination = (page: { current: number }) => {
 
 // 如果是对父评论的回复，交由父组件处理，否则自己处理
 const publish = async () => {
+  console.log("这是ChildrenItem的publish")
   if (!userStore.getUserInfo.id) {
     ElNotification({
       offset: 60,
@@ -170,6 +171,7 @@ const publish = async () => {
 
   if (isParentApply.value) {
     commentTo.content = commentText.value;
+    console.log(commentTo.content)
     emits('parentApply', commentTo);
     closeComment();
     return;
@@ -182,7 +184,7 @@ const publish = async () => {
     type: props.type,
     author_id: props.authorId,
   };
-
+  console.log(data)
   const res = await addComment(data);
   if (res?.code === 200) {
     commentText.value = '';
@@ -210,7 +212,7 @@ watch(
   () => {
     Object.assign(params, {
       for_id: props.id,
-      type: 'comment',
+      type: props.type,
       parent_id: props.parent_id,
     });
     getComment();

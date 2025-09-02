@@ -334,7 +334,7 @@ watch(
             <Comment
               ref="commentRef"
               class="w-100"
-              type="comment"
+              type="post"
               :id="Number(route.query.id ?? 0)"
               :author-id="articleInfo.author_id"
             />

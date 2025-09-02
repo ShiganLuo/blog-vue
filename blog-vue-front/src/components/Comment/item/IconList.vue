@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SvgIcon from "@/components/SvgIcon/index.vue"
 const emit = defineEmits<{
   (e: "selectIcon", value: string): void;
 }>();
