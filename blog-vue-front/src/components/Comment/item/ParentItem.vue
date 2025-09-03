@@ -23,7 +23,6 @@ const props = defineProps<{
 
 const commentList = ref<CommentItem[]>([]);
 const commentTotal = ref(0);
-const topCommentInput = ref(""); // 用于顶层评论输入框的 v-model
 const topCommentInputRef = ref<InstanceType<typeof CommentInput> | null>(null);
 
 const params = reactive<CommentParams>({
@@ -56,7 +55,8 @@ const showMore = () => {
 // 处理点赞事件
 const handleLike = async (comment: CommentItem) => {
   let res;
-  const payload = { for_id: comment.id, type: props.type, user_id: userStore.getUserInfo.id };
+  const payload = { for_id: comment.id, type: "comment", user_id: userStore.getUserInfo.id };
+  console.log("这是父组件的handleLike",payload)
   if (comment.is_like) {
     res = await cancelLike(payload);
     if (res?.code === 200) {
@@ -76,6 +76,7 @@ const handleLike = async (comment: CommentItem) => {
 
 // 处理删除事件
 const handleDelete = (commentId: number | string) => {
+  console.log("这是父组件的handleDelete",commentId)
   ElMessageBox.confirm("确认删除此条评论吗？子级评论也会被删除哦", "提示", {
     confirmButtonText: "确认",
     cancelButtonText: "取消",

@@ -22,10 +22,12 @@ const props = defineProps<{
   authorId: number | string;
 }>();
 const handleLike = () => {
+  console.log("这是子组件的handleLike",props.comment)
   emits('like', props.comment);
 };
 
 const handleDelete = () => {
+  console.log("这是子组件的handleDelte",props.comment)
   emits('delete', props.comment.id);
 };
 
@@ -128,7 +130,7 @@ const submitReply = () => {
             :comment="childComment"
             :type="type"
             :author-id="authorId"
-            @like="handleLike"
+            @like="emits('like', $event)"
             @delete="handleDelete"
             @publish="emits('publish', $event)"
           />
