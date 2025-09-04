@@ -8,7 +8,7 @@ interface UserInfo {
   id?: number | string
   username?: string
   avatar?: string
-  nick_name?: string
+  nickname?: string
   email?: string
   avatarList?: Array<{ id?: number; name: string; url: string }>;
   [key: string]: any // 其他可能的动态属性

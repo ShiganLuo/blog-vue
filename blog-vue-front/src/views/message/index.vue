@@ -14,27 +14,32 @@ import { addMessage } from "@/api/message";
 import SvgIcon from "@/components/SvgIcon/index.vue";
 
 
-// ===== 类型定义 =====
-interface UserInfo {
-  id: number;
-  nick_name?: string;
-  avatar?: string;
-}
+
 
 interface MessageForm {
-  id: number;
-  message: string;
+  id: number | string;
+  content: string;
+  type: string;
+  from_id: number | string;
   color: string;
   font_size: number;
   font_weight: number;
   bg_color: string;
   bg_url: string;
-  user_id: number;
-  tag: string;
-  nick_name: string;
+  username: string;
   avatar: string;
   isNew: boolean;
 }
+const randomFontColor = (): string => {
+  return `rgb(${Math.random() * 180 + 30},${Math.random() * 180 + 30},${Math.random() * 180 + 30})`;
+};
+
+const randomFontSize = (): number => {
+  return Math.random() * 1.6 + 0.6;
+};
+const randomFontWeight = (): number => {
+  return Math.random() * 100;
+};
 
 interface AddMessageResponse {
   code: number;
@@ -47,7 +52,6 @@ interface MessageComponent {
   init: () => void;
 }
 
-// ===== 逻辑部分 =====
 const router = useRouter();
 const { getUserInfo } = storeToRefs(useUserStore());
 const { getMessageTypeIsCard } = storeToRefs(useStaticData());
@@ -81,20 +85,22 @@ const userAddMessage = (): void => {
       });
       return;
     }
+    console.log(getUserInfo.value)
     const form: MessageForm = {
       id: 0,
-      message: message.value,
-      color: "",
-      font_size: 16,
-      font_weight: 500,
+      content: message.value,
+      type: "message",
+      from_id: getUserInfo.value.id || 0,
+      color: randomFontColor(),
+      font_size: randomFontSize(),
+      font_weight: randomFontWeight(),
       bg_color: "transparent",
       bg_url: "",
-      user_id: (getUserInfo.value as UserInfo).id,
-      tag: "赞不绝口",
-      nick_name: (getUserInfo.value as UserInfo).nick_name || "游客",
-      avatar: (getUserInfo.value as UserInfo).avatar || "游客",
+      username: getUserInfo.value.username || "游客",
+      avatar: getUserInfo.value.avatar || "游客",
       isNew: true,
     };
+    console.log("form", form);
     // 保存弹幕
     addMessage(form).then((res: AddMessageResponse) => {
       if (res.code === 200) {

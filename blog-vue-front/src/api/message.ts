@@ -3,7 +3,7 @@ import { fullRequest, request } from "./http/index";
 export const addMessage = (data?: object) => {
   return fullRequest({
     method:  'post',
-    url: '/api/front/articles/getTimeLineArticle',
+    url: '/api/front/comments/addComment',
     data: data
   })
 }
@@ -27,7 +27,7 @@ export const getMessageTag = (data?: object) => {
 export const getMessageList = (data?: object) => {
   return fullRequest({
     method:  'post',
-    url: '/api/front/articles/getTimeLineArticle',
+    url: '/api/front/comments/getMessagePage',
     data: data
   })
 }
@@ -42,8 +42,8 @@ export const deleteMessage = (data?: object) => {
 
 export const getAllMessage = (data?: object) => {
   return fullRequest({
-    method:  'get',
-    url: '/api/front/comments/getAllMessage',
+    method:  'post',
+    url: '/api/front/comments/getMessagePage',
     data: data
   })
 }

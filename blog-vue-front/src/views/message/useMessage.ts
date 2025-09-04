@@ -63,7 +63,6 @@ export const predefineColors: ColorValue[] = [
 export const opTabList: OptionTabItem[] = [
   { key: 0, label: "背景颜色" },
   { key: 1, label: "字体" },
-  { key: 2, label: "背景图片" },
   { key: 3, label: "标签" },
 ];
 

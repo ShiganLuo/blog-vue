@@ -11,17 +11,18 @@ import PageHeader from "@/components/PageHeader/index.vue";
 
 // 单条留言类型
 interface MessageItem {
-  id: number;
-  message: string;
+  id: number | string;
+  content: string;
+  type: string;
+  from_id?: number | string;
   color: string;
   font_size: number;
   font_weight: number;
   bg_color: string;
   bg_url: string;
   user_id: number;
-  tag: string;
   like_times: number;
-  nick_name: string;
+  username: string;
   avatar: string;
   is_like: boolean;
   createdAt?: string; // 时间可能存在
@@ -32,16 +33,17 @@ const { getUserInfo } = storeToRefs(userStore);
 
 const message = reactive<MessageItem>({
   id: 0,
-  message: "",
+  content: "",
+  type:"message",
+  from_id: getUserInfo.value.id,
   color: "",
   font_size: 16,
   font_weight: 500,
   bg_color: "",
   bg_url: "",
   user_id: 0,
-  tag: "",
   like_times: 0,
-  nick_name: "",
+  username: "",
   avatar: "",
   is_like: false,
 });
@@ -69,7 +71,7 @@ const like = async (item: MessageItem) => {
   } else {
     // 点赞
     const res = await addLike({ for_id: item.id, type: 3, user_id: getUserInfo.value.id });
-    if (res.code === 0) {
+    if (res.code === 200) {
       item.like_times++;
       item.is_like = true;
       likePending.value = false;
@@ -113,17 +115,17 @@ onMounted(() => {
             :style="{ backgroundImage: message.bg_url ? `url(${message.bg_url})` : '' }"
           >
             <div class="top-header">
-              <div class="flex items-center">
-                <el-avatar class="left-avatar" :src="message.avatar"
-                  >{{ message.nick_name }}
+              <div class="header-items">
+                <el-avatar class="left-avatar" :src="message.avatar">
+                  {{ message.username }}
                 </el-avatar>
-                <span class="nick-name"> {{ message.nick_name }}</span>
+                <span class="nick-name"> {{ message.username }}</span>
               </div>
             </div>
             <div
               class="content"
-              v-if="containHTML(message.message)"
-              v-html="message.message"
+              v-if="containHTML(message.content)"
+              v-html="message.content"
               :style="{
                 color: message.color,
                 fontSize: message.font_size + 'px',
@@ -139,42 +141,41 @@ onMounted(() => {
                 fontWeight: message.font_weight,
               }"
             >
-              {{ message.message }}
+              {{ message.content }}
             </div>
             <div class="bottom">
-              <div class="left flex items-center">
+              <div class="left bottom-items">
                 <div class="time">{{ returnTime(message.createdAt) }}前</div>
-                <div class="index-tag">#{{ message.tag }}</div>
               </div>
-              <div class="flex justify-start items-center option">
+              <div class="right bottom-items">
                 <svg-icon
                   :name="message.is_like ? 'redHeart' : 'greyHeart'"
                   :width="1.5"
                   @click="like(message)"
                 ></svg-icon>
-                <span :style="{ color: message.is_like ? '#f00' : '' }" class="!ml-[5px]">{{
-                  message.like_times || 0
-                }}</span>
+                <span :style="{ color: message.is_like ? '#f00' : '' }" class="like-count">
+                  {{ message.like_times || 0 }}
+                </span>
               </div>
             </div>
           </div>
         </div>
       </el-card>
-      <Comment
-        v-if="message.id"
-        class="w-[100%] !mt-[1rem]"
-        type="message"
-        :expand="true"
-        :id="message.id"
-        :author-id="message.user_id"
-        @refresh="commentRefresh"
-      />
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .message {
+  .header-items {
+    display: flex;
+    align-items: center;
+  }
+  .bottom-items {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+  }
   .nick-name {
     color: var(--global-white);
     margin-left: 1rem;
@@ -183,18 +184,23 @@ onMounted(() => {
     background-color: rgba(0, 0, 0, 0.2);
     border-radius: 8px;
   }
-
   .left {
     background-color: rgba(0, 0, 0, 0.2);
     border-radius: 8px;
     padding: 3px 8px;
   }
-
   .time {
     font-size: 12px;
     color: var(--global-white);
     letter-spacing: 1px;
     margin-right: 10px;
+  }
+  .like-count {
+    margin-left: 5px;
+  }
+  .comment-container {
+    width: 100%;
+    margin-top: 1rem;
   }
 }
 .message-card {
@@ -203,13 +209,11 @@ onMounted(() => {
   background-size: cover;
   background-repeat: no-repeat;
 }
-
 .content {
   word-break: break-all;
   height: 15rem;
   overflow: auto;
 }
-
 .top {
   height: 22rem;
   padding: 8px;
@@ -224,7 +228,6 @@ onMounted(() => {
     display: none;
   }
 }
-
 .top-header {
   height: 4rem;
   display: flex;
@@ -235,7 +238,6 @@ onMounted(() => {
   color: var(--global-white);
   font-size: 12px;
 }
-
 .bottom {
   display: flex;
   justify-content: space-between;
@@ -249,11 +251,9 @@ onMounted(() => {
   border-radius: 8px;
   background-color: rgba(0, 0, 0, 0.2);
 }
-
 .center_box {
   min-height: calc(100vh - 128px);
 }
-
 // pc
 @media screen and (min-width: 768px) {
   .center_box {
@@ -266,7 +266,6 @@ onMounted(() => {
     }
   }
 }
-
 // mobile
 @media screen and (max-width: 768px) {
   .center-top {

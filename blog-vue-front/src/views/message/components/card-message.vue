@@ -28,18 +28,15 @@ const { getUserInfo } = storeToRefs(userStore);
 // 定义留言项的接口
 interface MessageItem {
   id: number;
-  bg_color: string;
-  bg_url: string;
   avatar: string;
-  nick_name: string;
+  username: string;
   user_id: number;
-  message: string;
+  content: string;
   color: string;
   font_size: number;
   font_weight: number;
   createdAt: string;
   comment_total: number;
-  tag: string;
   is_like: boolean;
   like_times: number;
 }
@@ -54,17 +51,17 @@ let box: Element | null = null;
 interface Params {
   current: number;
   size: number;
-  tag: string;
-  message: string;
+  type: string;
+  content: string;
   user_id?: number | string;
 }
 
 const param = reactive<Params>({
   current: 1,
-  size: 8,
-  tag: "",
-  message: "",
-  user_id: getUserInfo.value.id , // 确保 user_id 有默认值
+  size: 10,
+  type: "message",
+  content: "",
+  user_id: getUserInfo.value.id, // 确保 user_id 有默认值
 });
 const primaryParam = reactive<Params>({ ...param });
 
@@ -81,11 +78,7 @@ const likePending = ref<boolean>(false);
 
 const changeTab = (key: number, label: string): void => {
   activeTab.value = key;
-  param.tag = label;
   searchTag.value = "";
-  if (label === "全部") {
-    param.tag = "";
-  }
   param.current = 1;
   pageGetMessageList();
 };
@@ -115,6 +108,31 @@ const observeBox = (): void => {
   }
 };
 
+// --- 新增随机值生成函数 ---
+/**
+ * @description: 生成随机十六进制颜色
+ * @return {string}
+ */
+const getRandomColor = (): string => {
+  return '#' + Math.floor(Math.random() * 0xffffff).toString(16).padEnd(6, '0');
+};
+/**
+ * @description: 生成随机字体大小
+ * @return {number}
+ */
+const getRandomFontSize = (): number => {
+  return Math.floor(Math.random() * (22 - 16 + 1)) + 16; // 字体大小范围为 16px 到 22px
+};
+/**
+ * @description: 生成随机字体粗细
+ * @return {number}
+ */
+const getRandomFontWeight = (): number => {
+  const weights = [400, 500, 600, 700];
+  return weights[Math.floor(Math.random() * weights.length)];
+};
+// --- 随机值生成函数结束 ---
+
 const pageGetMessageList = async (): Promise<void> => {
   if (param.current === 1) {
     loading.value = true;
@@ -123,8 +141,18 @@ const pageGetMessageList = async (): Promise<void> => {
   }
   try {
     let res = await getMessageList(param);
-    if (res.code === 0 && res.result) {
+    if (res.code === 200 && res.result) {
       const { list, total } = res.result;
+      console.log("list", list);
+
+      // --- 新增：为每个留言项设置随机值 ---
+      list.forEach((item: MessageItem) => {
+        item.color = getRandomColor();
+        item.font_size = getRandomFontSize();
+        item.font_weight = getRandomFontWeight();
+      });
+      // --- 新增结束 ---
+
       messageList.value = param.current === 1 ? list : [...messageList.value, ...list];
       let classList = res.result.list.map((item: any, index: number) => {
         return ".message" + (messageList.value.length - list.length + index);
@@ -158,14 +186,14 @@ const like = async (item: MessageItem, index: number): Promise<void> => {
     let res;
     // 取消点赞
     if (item.is_like) {
-      res = await cancelLike({ for_id: item.id, type: 3, user_id: getUserInfo.value.id });
+      res = await cancelLike({ for_id: item.id, type: "message", user_id: getUserInfo.value.id });
     }
     // 点赞
     else {
-      res = await addLike({ for_id: item.id, type: 3, user_id: getUserInfo.value.id });
+      res = await addLike({ for_id: item.id, type: "message", user_id: getUserInfo.value.id });
     }
 
-    if (res && res.code === 0) {
+    if (res && res.code === 200) {
       if (item.is_like) {
         messageList.value[index].like_times--;
         messageList.value[index].is_like = false;
@@ -209,8 +237,8 @@ const handleDeleteMessage = (item: MessageItem): void => {
     cancelButtonText: "取消",
   })
     .then(async () => {
-      const res = await deleteMessage({id: item.id});
-      if (res && res.code === 0) {
+      const res = await deleteMessage({ id: item.id });
+      if (res && res.code === 200) {
         ElNotification({
           offset: 60,
           title: "提示",
@@ -233,18 +261,18 @@ const handleDeleteMessage = (item: MessageItem): void => {
         });
       }
     })
-    .catch(() => {});
+    .catch(() => { });
 };
 
 const getHotMessageTag = async (): Promise<void> => {
   tabList.value = [];
   const res = await getMessageTag();
-  if (res.code === 0 && res.result) {
+  if (res.code === 200 && res.result) {
     tabList.value = Array.isArray(res.result)
       ? res.result.map((v, i) => ({
-          key: i + 1,
-          label: v.tag,
-        }))
+        key: i + 1,
+        label: v.tag,
+      }))
       : [];
     tabList.value.unshift({ key: 0, label: "全部" });
   }
@@ -255,7 +283,7 @@ const showSearchInput = (): void => {
 };
 
 const changeSearch = (val: string): void => {
-  param.message = val;
+  param.content = val;
   param.current = 1; // 搜索时重置页码
   pageGetMessageList();
 };
@@ -346,20 +374,17 @@ defineExpose<{
         >
           <el-card class="card-hover">
             <div
-              :style="{ backgroundColor: message.bg_color }"
               class="message-card animate__animated animate__fadeIn"
             >
-              <div class="img-loading" v-if="message.bg_url" v-image="message.bg_url"></div>
               <div
                 class="top"
-                :style="{ backgroundImage: message.bg_url ? `url(${message.bg_url})` : '' }"
               >
                 <div class="top-header">
                   <div class="flex items-center">
                     <el-avatar class="left-avatar" :src="message.avatar"
-                      >{{ message.nick_name }}
+                      >{{ message.username }}
                     </el-avatar>
-                    <span class="nick-name"> {{ message.nick_name }}</span>
+                    <span class="nick-name"> {{ message.username }}</span>
                   </div>
                   <div
                     class="flex items-center cursor-pointer option-top"
@@ -375,8 +400,8 @@ defineExpose<{
                 </div>
                 <div
                   class="content"
-                  v-if="containHTML(filterMessage(message.message))"
-                  v-html="filterMessage(message.message)"
+                  v-if="containHTML(filterMessage(message.content))"
+                  v-html="filterMessage(message.content)"
                   :style="{
                     color: message.color,
                     fontSize: message.font_size + 'px',
@@ -392,7 +417,7 @@ defineExpose<{
                     fontWeight: message.font_weight,
                   }"
                 >
-                  {{ message.message }}
+                  {{ message.content }}
                 </div>
                 <div class="bottom">
                   <div class="left flex items-center">
@@ -401,10 +426,7 @@ defineExpose<{
                       class="message-comment cursor-pointer !mr-[10px]"
                       @click="comment(message)"
                     >
-                      <span>评论</span>
-                      <span class="!ml-[5px]">{{ message.comment_total }}</span>
                     </div>
-                    <div class="index-tag">#{{ message.tag }}</div>
                   </div>
                   <div class="flex justify-start items-center option">
                     <div

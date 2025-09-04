@@ -1,69 +1,119 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { getAllMessage } from "@/api/message";
+import { ref, onMounted, nextTick, watch } from "vue";
+import { getMessageList } from "@/api/message";
 import VueDanmaku from "vue3-danmaku";
 
 // 定义弹幕数据类型
 interface Danmu {
   avatar: string;
-  nick_name: string;
-  message: string;
+  username: string;
+  content: string;
   isNew?: boolean;
 }
 
-// vue-danmaku 组件实例类型（根据库的类型定义调整）
+// vue-danmaku 组件实例类型
 interface VueDanmakuInstance {
   add: (danmu: Danmu) => void;
+  play: () => void;
 }
 
 const vueDanmakuRef = ref<VueDanmakuInstance | null>(null);
-const danmus = ref<Danmu[]>([]);
+
+// 用于存储从后端获取的原始弹幕数据
+const originalDanmus = ref<Danmu[]>([]);
+
+// 用于控制 v-if 渲染的弹幕数组
+const currentDanmus = ref<Danmu[]>([]);
+
 const loop = ref(false);
 
-// 添加弹幕
+// 添加新弹幕
 const addDanmu = (danmu: Danmu) => {
-  vueDanmakuRef.value?.add(danmu);
+  if (vueDanmakuRef.value) {
+    vueDanmakuRef.value.add(danmu);
+  }
 };
 
-// 初始化弹幕
-const init = () => {
-  danmus.value = [];
-  getAllMessage().then((res: any) => {
-    danmus.value = res.result.list as Danmu[];
-    console.log(danmus.value)
-    if (danmus.value.length > 100) {
+// 加载并播放弹幕
+const loadAndPlayDanmu = async () => {
+  try {
+    const res: any = await getMessageList({
+      current: 1,
+      size: 200,
+      type: "message",
+    });
+    const data = res.result.list as Danmu[];
+    
+    originalDanmus.value = data; // 存储原始数据
+    currentDanmus.value = data; // 用于初始渲染
+
+    if (originalDanmus.value.length > 100) {
       loop.value = true;
     }
+
+    // Vue 会根据 currentDanmus 的变化来渲染组件
+    // 无需手动调用 play()，因为 isSuspend="true" 的特性
+    // 而是通过 watch 监听 currentDanmus，当它变化时自动播放
+    // 这种模式更健壮
+  } catch (error) {
+    console.error("Failed to load messages:", error);
+  }
+};
+
+// 监听弹幕数据，当数据加载后自动播放
+watch(
+  () => currentDanmus.value,
+  (newVal) => {
+    if (newVal.length > 0) {
+      nextTick(() => {
+        if (vueDanmakuRef.value) {
+          vueDanmakuRef.value.play();
+        }
+      });
+    }
+  },
+  { immediate: true }
+);
+
+// 当弹幕播放结束时，重新加载并播放
+const handlePlayEnd = () => {
+  // 清空 currentDanmus，触发组件销毁
+  currentDanmus.value = [];
+  
+  // 使用 nextTick 确保组件完全销毁后再重新赋值
+  nextTick(() => {
+    // 重新赋值，触发组件重建和播放
+    currentDanmus.value = [...originalDanmus.value];
   });
 };
 
 onMounted(() => {
-  init();
+  loadAndPlayDanmu();
 });
 
 defineExpose({
   addDanmu,
-  init,
+  init: loadAndPlayDanmu,
 });
 </script>
 
 <template>
   <vue-danmaku
-    v-if="danmus.length"
+    v-if="currentDanmus.length"
     ref="vueDanmakuRef"
     class="danmaku-container"
-    v-model:danmus="danmus"
+    v-model:danmus="currentDanmus"
     :loop="loop"
     useSlot
     :speeds="60"
     :isSuspend="true"
-    
+    @play-end="handlePlayEnd"
   >
     <template #dm="{ danmu }">
       <div class="danmu-item">
-        <el-avatar :src="danmu.avatar">{{ danmu.nick_name }}</el-avatar> :
-        <span class="new-item" v-if="danmu.isNew">{{ danmu.message }}</span>
-        <span v-else>{{ danmu.message }}</span>
+        <el-avatar :src="danmu.avatar">{{ danmu.username }}</el-avatar> :
+        <span class="new-item" v-if="danmu.isNew">{{ danmu.content }}</span>
+        <span v-else>{{ danmu.content }}</span>
       </div>
     </template>
   </vue-danmaku>
