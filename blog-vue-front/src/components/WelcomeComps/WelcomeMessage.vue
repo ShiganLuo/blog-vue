@@ -26,5 +26,4 @@ onMounted(async () => {
 </script>
 
 <template>
-  <!-- 无需额外模板，ElMessage 会自动弹出 -->
 </template>

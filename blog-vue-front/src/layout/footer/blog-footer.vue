@@ -4,7 +4,6 @@ const route = useRoute();
 </script>
 
 <template>
-  <!-- 最外层 div 是占位置的 -->
   <div
     v-if="route.path !== '/message/chat'"
     class="footer_box flex flex-col items-center justify-center"

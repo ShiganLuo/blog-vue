@@ -19,6 +19,7 @@ export interface CommentItem {
 export interface CommentParams {
   current: number;
   size: number;
+  user_id?: number | string;
   type?: string;
   for_id?: number | string;
   rootId?: number | string;

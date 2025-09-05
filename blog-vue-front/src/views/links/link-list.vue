@@ -138,7 +138,6 @@ onBeforeUnmount(() => {
 <template>
   <PageHeader :loading="loading" />
   <div class="center_box">
-    <!-- 替换了 !m-[3px] !p-[10px] -->
     <el-card class="card-tight">
       <el-descriptions :column="1">
         <template #title>
@@ -179,7 +178,7 @@ onBeforeUnmount(() => {
               :style="{
                 zIndex: 1,
                 backgroundImage: `url(${
-                  item.site_avatar || 'http://img.mrzym.top/FgTOrGUz5WJwswSLhPsiGL4DOXe3'
+                  item.site_avatar
                 })`,
               }"
               class="site-item site-mask"
@@ -227,13 +226,10 @@ onBeforeUnmount(() => {
 </template>
 
 <style lang="scss" scoped>
-/* el-card 的 margin 和 padding */
 .card-tight {
-  margin: 3px !important;
+  margin: 2rem !important;
 }
-.card-tight .el-card__body {
-  padding: 10px !important;
-}
+.desc-title {}
 
 .cursor-pointer {
   cursor: pointer !important;

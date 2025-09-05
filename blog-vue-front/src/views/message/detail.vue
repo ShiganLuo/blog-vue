@@ -8,6 +8,7 @@ import { useUserStore } from "@/stores/index";
 
 import { ElNotification } from "element-plus";
 import PageHeader from "@/components/PageHeader/index.vue";
+import SvgIcon from "@/components/SvgIcon/index.vue";
 
 // 单条留言类型
 interface MessageItem {
@@ -18,10 +19,8 @@ interface MessageItem {
   color: string;
   font_size: number;
   font_weight: number;
-  bg_color: string;
-  bg_url: string;
   user_id: number;
-  like_times: number;
+  thumbs_up: number;
   username: string;
   avatar: string;
   is_like: boolean;
@@ -39,10 +38,8 @@ const message = reactive<MessageItem>({
   color: "",
   font_size: 16,
   font_weight: 500,
-  bg_color: "",
-  bg_url: "",
   user_id: 0,
-  like_times: 0,
+  thumbs_up: 0,
   username: "",
   avatar: "",
   is_like: false,
@@ -56,9 +53,9 @@ const like = async (item: MessageItem) => {
 
   if (item.is_like) {
     // 取消点赞
-    const res = await cancelLike({ for_id: item.id, type: 3, user_id: getUserInfo.value.id });
-    if (res.code === 0) {
-      item.like_times--;
+    const res = await cancelLike({ for_id: item.id, type: "message", user_id: getUserInfo.value.id });
+    if (res.code === 200) {
+      item.thumbs_up--;
       item.is_like = false;
       likePending.value = false;
 
@@ -70,9 +67,9 @@ const like = async (item: MessageItem) => {
     }
   } else {
     // 点赞
-    const res = await addLike({ for_id: item.id, type: 3, user_id: getUserInfo.value.id });
+    const res = await addLike({ for_id: item.id, type: "message", user_id: getUserInfo.value.id });
     if (res.code === 200) {
-      item.like_times++;
+      item.thumbs_up++;
       item.is_like = true;
       likePending.value = false;
 
@@ -107,13 +104,10 @@ onMounted(() => {
     <div class="center_box">
       <el-card>
         <div
-          :style="{ backgroundColor: message.bg_color }"
           class="message-card animate__animated animate__fadeIn"
         >
           <div
-            class="top"
-            :style="{ backgroundImage: message.bg_url ? `url(${message.bg_url})` : '' }"
-          >
+            class="top">
             <div class="top-header">
               <div class="header-items">
                 <el-avatar class="left-avatar" :src="message.avatar">
@@ -154,7 +148,7 @@ onMounted(() => {
                   @click="like(message)"
                 ></svg-icon>
                 <span :style="{ color: message.is_like ? '#f00' : '' }" class="like-count">
-                  {{ message.like_times || 0 }}
+                  {{ message.thumbs_up}}
                 </span>
               </div>
             </div>

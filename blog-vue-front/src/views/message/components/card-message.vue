@@ -7,7 +7,7 @@ import { ElNotification, ElMessageBox } from "element-plus";
 
 import { gsapTransXScale } from "@/utils/transform";
 import { getMessageList, deleteMessage, getMessageTag } from "@/api/message";
-import { addLike, cancelLike } from "@/api/like";
+import { addLike, cancelLike, getIsLikeByIdOrIpAndType } from "@/api/like";
 
 import svgIcon from "@/components/SvgIcon/index.vue";
 import Loading from "@/components/Loading/index.vue";
@@ -36,9 +36,8 @@ interface MessageItem {
   font_size: number;
   font_weight: number;
   createdAt: string;
-  comment_total: number;
   is_like: boolean;
-  like_times: number;
+  thumbs_up: number;
 }
 const messageList = ref<MessageItem[]>([]);
 const total = ref<number>(0);
@@ -142,9 +141,7 @@ const pageGetMessageList = async (): Promise<void> => {
   try {
     let res = await getMessageList(param);
     if (res.code === 200 && res.result) {
-      const { list, total } = res.result;
-      console.log("list", list);
-
+      const { list, sum } = res.result;
       // --- 新增：为每个留言项设置随机值 ---
       list.forEach((item: MessageItem) => {
         item.color = getRandomColor();
@@ -157,7 +154,7 @@ const pageGetMessageList = async (): Promise<void> => {
       let classList = res.result.list.map((item: any, index: number) => {
         return ".message" + (messageList.value.length - list.length + index);
       });
-      total.value = total;
+      total.value = sum;
       nextTick(() => {
         gsapTransXScale(classList, 0, 1.2);
       });
@@ -195,7 +192,7 @@ const like = async (item: MessageItem, index: number): Promise<void> => {
 
     if (res && res.code === 200) {
       if (item.is_like) {
-        messageList.value[index].like_times--;
+        messageList.value[index].thumbs_up--;
         messageList.value[index].is_like = false;
         ElNotification({
           offset: 60,
@@ -203,7 +200,7 @@ const like = async (item: MessageItem, index: number): Promise<void> => {
           message: h("div", { style: "color: #7ec050; font-weight: 600;" }, "已取消点赞"),
         });
       } else {
-        messageList.value[index].like_times++;
+        messageList.value[index].thumbs_up++;
         messageList.value[index].is_like = true;
         ElNotification({
           offset: 60,
@@ -218,6 +215,7 @@ const like = async (item: MessageItem, index: number): Promise<void> => {
 };
 
 const comment = (item: MessageItem): void => {
+  console.log("item", item);
   if (item) {
     _setLocalItem("blog-message-item", item);
   }
@@ -410,6 +408,7 @@ defineExpose<{
                 ></div>
                 <div
                   class="content"
+                  @click="comment(message)"
                   v-else
                   :style="{
                     color: message.color,
@@ -422,11 +421,6 @@ defineExpose<{
                 <div class="bottom">
                   <div class="left flex items-center">
                     <div class="time">{{ returnTime(message.createdAt) }}前</div>
-                    <div
-                      class="message-comment cursor-pointer !mr-[10px]"
-                      @click="comment(message)"
-                    >
-                    </div>
                   </div>
                   <div class="flex justify-start items-center option">
                     <div
@@ -437,8 +431,8 @@ defineExpose<{
                         :name="message.is_like ? 'redHeart' : 'greyHeart'"
                         :width="1.5"
                       ></svg-icon>
-                      <span :style="{ color: message.is_like ? '#f00' : '' }" class="!ml-[5px]">{{
-                        message.like_times || 0
+                      <span :style="{ color: message.is_like ? '#f00' : '' }" class="thums_up">{{
+                        message.thumbs_up
                       }}</span>
                     </div>
                   </div>
@@ -602,6 +596,9 @@ defineExpose<{
     color: var(--font-color);
     font-size: 16px;
   }
+}
+.thumbs_up {
+  margin-left: -5px !important;
 }
 .observer {
   display: flex;

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { reactive, ref, watch, h } from "vue";
+import { storeToRefs } from "pinia";
 import { frontGetComment, addComment, deleteComment } from "@/api/comment";
 import { addLike, cancelLike } from "@/api/like";
 import Loading from "@/components/Loading/index.vue";
@@ -10,6 +11,7 @@ import ChildrenItem from "./ChildrenItem.vue";
 import CommentInput from "./CommentInput.vue"; // 引入你提供的评论输入组件
 
 const userStore = useUserStore();
+const { getUserInfo } = storeToRefs(userStore);
 const emits = defineEmits<{
   (e: 'refresh'): void;
 }>();
@@ -28,6 +30,7 @@ const topCommentInputRef = ref<InstanceType<typeof CommentInput> | null>(null);
 const params = reactive<CommentParams>({
   current: 1,
   size: 10,
+  user_id: getUserInfo.value.id,
   rootId: props.id,
   loading: false,
 });
